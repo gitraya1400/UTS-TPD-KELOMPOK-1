@@ -1,0 +1,799 @@
+<p>
+    LAPORAN PRAKTIKUM TEKNOLOGI PEREKAYASAAN DATA
+
+    “Judulnya nanti”
+
+
+
+
+    Disusun Oleh :
+    KELOMPOK 1 (3SI1)
+
+    Anggita Cristin Meylani
+    222312982
+    Clarisse De Delgada M. Soares
+    222313033
+    M Rezky Raya Kilwouw
+    222313190
+    Nyimas Virna S. L. R
+    222313307
+
+
+
+    POLITEKNIK STATISTIKA STIS
+    TAHUN AJARAN 2025/2026
+    PENDAHULUAN
+    1.1 Latar Belakang
+    Sebagai negara dengan populasi lebih dari 278 juta jiwa, pemenuhan kebutuhan protein hewani yang stabil merupakan
+    pilar utama dalam menjaga ketahanan pangan nasional Indonesia. Namun, terdapat tantangan besar yang muncul akibat
+    ketidakseimbangan distribusi antara wilayah produsen dan pusat konsumsi. Indonesia secara alami terbagi menjadi dua
+    zona ekonomi ternak yang dipengaruhi oleh daya dukung alam dan kepadatan penduduk. Wilayah produsen seperti Nusa
+    Tenggara Timur (NTT) dan Nusa Tenggara Barat (NTB) memiliki keunggulan geografis berupa sabana dan lahan kering luas
+    yang mendukung sistem peternakan ekstensif, sementara Jawa Timur didukung oleh ketersediaan pakan hijauan melimpah
+    dan teknologi pembibitan yang maju. Di sisi lain, wilayah metropolitan seperti DKI Jakarta, Jawa Barat, Banten, dan
+    Jawa Tengah merupakan pusat konsumsi dengan densitas penduduk dan daya beli tinggi, namun memiliki keterbatasan
+    lahan akibat industrialisasi, sehingga sangat bergantung pada kiriman ternak dari luar daerah untuk memenuhi
+    kebutuhan protein harian warganya.
+    Ketimpangan geografis ini menciptakan jalur logistik yang panjang, kompleks, dan rentan terhadap berbagai gangguan.
+    Saat ini, data ketersediaan stok, pemantauan kesehatan hewan, dan harga pasar masih tersimpan dalam sistem yang
+    terisolasi atau data silo. Kondisi ini menyebabkan pemerintah dan pemangku kepentingan sulit untuk mendeteksi
+    penyebab asli dari lonjakan harga daging di tingkat konsumen, apakah hal tersebut dipicu oleh kegagalan pasokan
+    akibat wabah penyakit seperti yang tercatat dalam data kesehatan hewan, atau sekadar faktor spekulasi pasar.
+    Fragmentasi data antara laporan statistik populasi, arus mutasi ternak, dan fluktuasi harga harian mengakibatkan
+    pengambilan kebijakan seringkali bersifat reaktif dan kurang akurat dalam memprediksi krisis pasokan yang akan
+    datang.
+    Oleh karena itu, diperlukan sebuah solusi melalui proyek Livestock Intelligence yang membangun Data Warehouse
+    terintegrasi untuk menyatukan data dari BPS, iSIKHNAS, dan PIHPS. Dengan mengintegrasikan berbagai sumber data
+    heterogen ini, sistem tidak hanya mampu menyajikan data historis, tetapi juga menghasilkan indikator prediktif
+    seperti Supply Risk Index. Melalui pendekatan ini, analisis terhadap korelasi antara wabah penyakit di daerah asal
+    dan volatilitas harga di daerah tujuan dapat dilakukan secara saintifik. Proyek ini menjadi krusial untuk
+    mentransformasi manajemen ketahanan pangan dari metode konvensional menuju kebijakan berbasis data (data-driven
+    policy) yang mampu memberikan peringatan dini (early warning system) sebelum krisis pangan benar-benar terjadi di
+    pasar retail, guna menjamin stabilitas nasional dan kesejahteraan masyarakat.
+    1.2 Tujuan Proyek
+    Proyek ini bertujuan untuk membangun sebuah Data Warehouse terintegrasi yang mampu memecah isolasi data (data silo)
+    antara BPS, iSIKHNAS, dan PIHPS. Integrasi ini secara spesifik diarahkan untuk menghasilkan analisis analitik (OLAP)
+    yang actionable dan memiliki rigoritas tinggi guna mendukung pengambilan kebijakan ketahanan pangan. Adapun tujuan
+    penjabaran dari proyek ini adalah:
+    Membangun Sistem Peringatan Dini (Early Warning System): Menciptakan indikator prediktif berupa Supply Risk Index
+    yang mengkalkulasi tren fluktuasi harga, dampak kesehatan hewan (wabah), dan tekanan pasokan. Sistem ini bertujuan
+    memberikan peringatan awal kepada pemerintah daerah (seperti Jabodetabek) sebelum krisis pasokan fisik benar-benar
+    terjadi di pasar retail.
+    Membuktikan Penyebab Volatilitas Harga (Sektor Riil vs Moneter): Menganalisis korelasi antara lonjakan laporan
+    penyakit/kematian ternak di daerah produsen dengan tren kenaikan harga harian di pasar. Analisis ini bertujuan
+    membuktikan secara saintifik apakah anomali harga disebabkan oleh kegagalan pasokan akibat wabah atau murni karena
+    faktor spekulasi pasar.
+    Mendeteksi Gap antara Supply dan Demand: Mengukur ketimpangan antara kebutuhan daging teoretis (permintaan) dengan
+    realisasi pengiriman fisik ternak (mutasi dan karkas) untuk mengidentifikasi besaran defisit pasokan di wilayah
+    konsumen pada waktu tertentu, sehingga dapat memicu sinyal intervensi pasar.
+    Memetakan Kerentanan Logistik secara Spasial: Mengidentifikasi "titik lemah" dalam jalur distribusi logistik menuju
+    ibu kota secara visual dengan memetakan lokasi penyebaran penyakit terhadap densitas populasi ternak. Peta risiko
+    ini ditujukan untuk membantu penentuan prioritas alokasi bantuan atau pengiriman vaksin ke daerah asal pemasok.
+    Mengevaluasi Ketergantungan Pasokan Antar Wilayah: Mengukur proporsi dominasi wilayah produsen tertentu terhadap
+    total pasokan nasional yang masuk ke wilayah metropolitan. Evaluasi dependensi ini bertujuan mengukur tingkat
+    kerentanan pangan ibu kota apabila terjadi guncangan rantai pasok pada satu provinsi pemasok utama.
+
+
+    ARSITEKTUR DAN METODOLOGI PIPELINE
+    2.1 Arsitektur Pipeline
+    2.2 Penjelasan Tahapan ETL
+
+    DESAIN DATA WAREHOUSE
+
+    HASIL DAN INSIGHT
+
+    Data Source
+    Data BPS
+    Pengumpulan data: API Scrapping dan dummy
+    Periode: tahunan
+    Rentang waktu: 2020 - 2025
+    Variabel yang digunakan:
+    kode_wilayah
+    provinsi
+    tahun
+    jumlah_penduduk (jiwa)
+    populasi_sapi (ekor)
+    populasi_ayam (ekor)
+    produksi_daging_ayam (kg)
+
+
+    Dummy:
+    produksi_daging_sapi (ton)
+    konsumsi_daging_sapi (kg per kapita)
+    konsumsi_daging_ayam (kg per kapita)
+    permintaan_daging_sapi (ekor)
+    Permintaan_daging_ayam (ekor)
+    Jumlah_ternak_sapi_potong (ekor)
+    Jumlah_ternak_ayam_potong (ekor)
+    harga_baseline_sapi
+    harga_baseline_ayam
+    growth_populasi
+    Status_supply
+
+    Data Isikhnas (dummy)
+    Pengumpulan data: Generate
+    Disimpan di: PostgreSQL dengan nama database isikhnas_db
+    Variabel yang digunakan (kurang lebih seperti ini):
+
+
+
+    Nama Tabel
+    Kolom Kunci & Data
+
+
+    ref_hewan
+    id_hewan (PK diisi H4 - number atau H2 - number, H2 mewakili hewan berkaki 2 dan H4 mewakili hewan berkaki 2),
+    nama_hewan, kategori (diisi sesuai hewan misalnya ayam itu unggas).
+
+
+    ref_wilayah
+    id_wilayah (PK diisi angka 1 sampai n provinsi), Provinsi.
+
+
+    tr_mutasi
+    id_mutasi (PK diisi MUT-number), tgl_mutasi (MM/DD/YY), id_asal (FK dari id_wilayah), id_tujuan (FK dari
+    id_wilayah), id_hewan (FKdari id_hewan), jumlah_ekor.
+
+
+    tr_laporan_sakit
+    id_laporan (PK diisi LAP-number), tgl_lapor(MM/DD/YY), id_wilayah (FK dari id_wilayah)), id_hewan (FK dari
+    id_hewan), jumlah_gejala..
+
+
+    tr_hasil_lab
+    id_uji (PK diisi LAB-number), id_laporan (FK diisi id_laporan), tgl_uji(MM/DD/YY), penyakit( diisi penyakit hewan
+    sesuai hewan), hasil_uji (Positif/Negatif).
+
+
+    tr_rph
+    id_potong (PK diisi PTG-number), tgl_potongtgl_uji(MM/DD/YY), id_wilayah (FK diisi id_wilayah), id_hewan (FK diisi
+    id_hewan), berat_karkas(Kg).
+
+
+
+    Data PIHPS
+    Pengumpulan data: download CSV
+    Disimpan dalam format CSV
+    Variabel yang digunakan:
+    Provinsi
+    Kota
+    Nama_komoditas
+    Jenis_pasar (pasar tradisional, pasar modern, pedagang besar)
+    Harga
+    Waktu
+
+    Proses Extract
+    Scrapping dari web API BPS untuk variabel:
+    kode_wilayah
+    provinsi
+    tahun
+    jumlah_penduduk (jiwa)
+    populasi_sapi (ekor)
+    populasi_ayam (ekor)
+    produksi_daging_sapi (ton)
+    produksi_daging_ayam (kg)
+
+    Generate data dummy untuk variabel:
+    konsumsi_daging_sapi (kg)
+    konsumsi_daging_ayam (kg)
+    permintaan_daging_sapi (ekor)
+    permintaan_daging_ayam
+    Jumlah_ternak_sapi_potong (ekor)
+    Jumlah_ternak_ayam_potong (ekor)
+    harga_baseline_sapi
+    harga_baseline_ayam
+    growth_populasi
+    Status_supply
+
+    Hasil scraping API dan generate data dummy disimpan dalam 1 tabel dalam database bps_db, kemudian dinormalisasi
+    menjadi 4 tabel
+    Masukkan ke-4 tabel ke staging_db
+    Tarik semua tabel dari isikhnas_db lalu masukkan ke staging_db
+    Tarik data CSV PIHPS lalu masukkan ke staging_db
+
+    Proses Transform
+    Preprocessing, terdiri dari:
+    Standardisasi nama provinsi (gunakan nama resmi BPS sebagai standar utama)
+    Harmonisasi format tanggal (ubah semua kolom tanggal ke tipe data DATE dengan standar (YYYY-MM-DD). Lalu, ekstrak
+    kolom bulan dan tahun
+    Imputasi missing value (gunakan median untuk imputasi di data harga, dan gunakan mean untuk imputasi untuk data
+    populasi/produksi jika sebarannya normal. Imputasi dilakukan per kelompok (misal: rata-rata harga Ayam di provinsi X
+    pada bulan tersebut) agar tetap representatif.
+    Membangun tabel dimensi
+    dim_prov:
+    Ambil DISTINCT nama provinsi dari ketiga sumber yang sudah di-matching.
+    Variabel dalam dim_wilayah:
+    prov_key (PK) : surrogate key
+    kode_bps: Kode provinsi resmi dari BPS
+    nama_provinsi
+    dim_komoditas:
+    daftar unik untuk "Sapi" dan "Ayam".
+    Variabel dalam dim_komoditas:
+    komoditas_key (PK): surrogate key
+    nama_komoditas : sapi/ayam
+    dim_waktu:
+    deret waktu otomatis yang mencakup seluruh rentang data (Tanggal, Bulan, Kuartal, Tahun).
+    Variabel dalam dim_waktu:
+    waktu_key (PK): surrogate_key
+    bulan: dalam angka (1-12)
+    nama_bulan : (januari - desember)
+    kuartal: (Q1 - Q4)
+    tahun
+    Agregasi dan Integrasi
+    Langkah A: Agregasi
+    Metrik iSIKHNAS (Volume & Kesehatan):
+    sum_jumlah_sakit: SUM(jumlah_sakit)
+    sum_jumlah_mati: SUM(jumlah_mati)
+    sum_vol_mutasi: SUM(jumlah_ekor)
+    sum_realisasi_karkas: SUM(berat_karkas)
+    Metrik PIHPS (Harga):
+    avg_harga: AVG(harga) dari data pasar.
+    Group by: prov_key, waktu_key, komoditas_key
+    Langkah B: Normalisasi & Konversi Data BPS
+    Konversi satuan
+    produksi_daging_sapi = ton X 1000 kg
+    Normalisasi waktu (dibagi 12 bulan)
+    Metrik Berat (Kg):
+    avg_produksi_bulanan = produksi_daging / 12.
+    avg_konsumsi_bulanan = konsumsi_daging x jumlah penduduk / 12. (Ini untuk dibandingkan dengan
+    realisasi_berat_karkas).
+    Metrik populasi (ekor):
+    avg_permintaan_bulanan = permintaan_daging / 12.
+    avg_pemotongan_bulanan = jumlah_ternak_potong / 12.
+
+    Langkah C: Integrasi BPS
+    Lakukan LEFT JOIN antara hasil Langkah A (sebagai tabel utama) dengan Tabel BPS menggunakan kunci prov_key dan
+    tahun.
+    Karena kunci tahun pada BPS akan cocok dengan setiap bulan di tahun tersebut pada Langkah A, nilai jumlah_penduduk
+    (jiwa) populasi_sapi & populasi_ayam (ekor), harga_baseline, growth_populasi akan otomatis terduplikasi di setiap
+    baris bulan.
+
+    Langkah D: perhitungan supply_risk_index
+    Setelah semua metrik berada dalam satu baris (satu tuple Provinsi-Bulan-Komoditas), jalankan fungsi perhitungan
+    indeks risiko.
+    Indeks ini dihitung menggunakan pembobotan dari tiga komponen utama:
+
+
+    Price Gap: Mengukur anomali harga di pasar dibanding baseline pemerintah.
+
+    Health Impact: Mengukur tingkat keparahan wabah terhadap populasi tersedia.
+
+    Supply Strain: Mengukur beban pengiriman terhadap target produksi bulanan.
+
+
+    CATATAN:
+    Saat menghitung Supply Strain atau Health Impact, pastikan ada pengecekan jika pembagi (seperti populasi_ternak)
+    bernilai nol atau missing untuk menghindari error division by zero.
+    Jika avg_harga pada bulan tertentu kosong (karena tidak ada input PIHPS), gunakan Median dari bulan sebelumnya di
+    provinsi yang sama sebagai nilai imputasi agar perhitungan indeks risiko tidak terputus.
+    Proses Load
+    Setelah transformasi selesai di memori (Spark DataFrame), data di-push ke dalam database Data Warehouse.
+    Nama fact table: fact_supply_resilience
+
+    Variabel dalam fact_supply_resilience:
+    Prov_key (FK)
+    Waktu_key (FK)
+    Komoditas_key (FK)
+    jumlah_penduduk
+    Sum_jumlah_sakit
+    sum_jumlah_mati
+    Sum_vol_mutasi
+    Sum_realisasi_karkas
+    Avg_harga
+    Harga_baseline
+    Populasi_ternak
+    avg_konsumsi_bulanan
+    avg_pemotongan_bulanan
+    Growth_populasi
+    avg_permintaan_bulanan
+    avg_produksi_bulanan
+    supply_risk_index
+
+
+
+
+
+    ANALISIS
+    Early Warning System
+    Analisis ini merupakan representasi visual dari variabel supply_risk_index yang dihitung pada Langkah D.
+    Komponen: avg_harga (PIHPS), sum_jumlah_sakit (iSIKHNAS), dan sum_vol_mutasi (iSIKHNAS) dibandingkan dengan
+    avg_permintaan_bulanan (BPS).
+    Fungsi: Memberikan skor 0–1 untuk setiap provinsi pemasok. Jika skor mendekati 1, pemerintah harus segera mencari
+    alternatif pasokan sebelum stok di pasar benar-benar habis.
+    Tren Harga vs Wabah
+    Analisis ini menguji korelasi antara kesehatan hewan di hulu dengan stabilitas ekonomi di hilir.
+    Komponen: Pergerakan avg_harga (PIHPS) disandingkan secara time-series dengan sum_jumlah_sakit dan sum_jumlah_mati
+    (iSIKHNAS).
+    Fungsi: Mengidentifikasi apakah kenaikan harga daging sapi di Jakarta adalah dampak dari wabah di daerah asal atau
+    sekadar fluktuasi musiman (seperti menjelang Lebaran).
+    Analisis Supply vs Demand Gap
+    Ini adalah analisis kecukupan pangan paling mendasar namun kritikal.
+    Komponen:
+    Level Logistik: sum_vol_mutasi (iSIKHNAS) vs avg_permintaan_bulanan_ekor (BPS).
+    Level Konsumsi: sum_realisasi_karkas (iSIKHNAS) vs avg_konsumsi_bulanan (BPS).
+    Fungsi: Menghitung selisih (gap) antara apa yang dikirim dengan apa yang dibutuhkan warga Jabodetabek dalam satuan
+    Kg maupun Ekor.
+    Peta Risiko Spasial
+    Memetakan kerentanan wilayah berdasarkan densitas populasi dan laporan penyakit.
+    Komponen: Menampilkan sum_jumlah_sakit di atas peta yang diwarnai berdasarkan densitas populasi_ternak (BPS) melalui
+    prov_key.
+    Fungsi: Menentukan prioritas intervensi kesehatan hewan (vaksinasi) di wilayah yang memiliki populasi ternak besar
+    namun tingkat infeksinya tinggi.
+    Ketergantungan & Dependensi Supply
+    Menganalisis dominasi wilayah pemasok terhadap ketahanan pangan ibu kota.
+    Komponen: Menghitung persentase sum_vol_mutasi dari satu provinsi terhadap total mutasi yang masuk ke Jabodetabek,
+    serta terhadap avg_produksi_bulanan nasional (BPS).
+    Fungsi: Mengetahui "provinsi kunci". Jika satu provinsi menyuplai 70% daging Jakarta dan provinsi tersebut masuk
+    kategori risiko tinggi di OLAP 1, maka alarm bahaya harus segera dinyalakan.
+    oke bisa dilihat didalam file UTS_K203410-Teknologi Perekayasaan Data.pdf itu adalah UTS kami nah ini juga tambahan
+    instruksi lebih lengkap, 📌Ketentuan umum:
+
+    Membuat pipeline mulai dari data source → ETL → Data Warehouse → OLAP/report
+    Dataset bebas, bisa dari Kaggle, BPS, database lain, Excel/CSV, dll
+    Minimal menggunakan 2 sumber data
+    Untuk database, boleh menggunakan 1 platform yang sama ataupun lebih
+    Boleh pakai data dummy dan boleh dibantu AI
+    Proses transformasi boleh memakai PySpark atau Airflow
+    📌 Yang harus ada dalam pengerjaan:
+    Merancang database/skema yang memungkinkan terbentuk data warehouse
+    Minimal ada 1 fact table dan 2–3 tabel dimensi
+    Proses transformasi bisa berupa join, gabung data, hapus duplikasi, menangani missing value, dll
+    Harus sampai ke OLAP/report, tidak hanya berhenti di DWH
+    Report tidak harus rumit, yang penting ada output seperti chart/grafik
+    📌 Laporan minimal berisi:
+    Kode Python
+    Screenshot skema database / ERD
+    Penjelasan latar belakang & skenario
+    Penjelasan sumber data dan database
+    Penjelasan proses transformasi
+    Screenshot output DWH
+    Screenshot report beserta penjelasannya
+    📌 Yang dinilai:
+    Proses transformasi
+    Kompleksitas data yang digunakan
+    Kompleksitas transformasi yang dilakukan
+    Semakin kompleks dan rapi pengerjaannya, semakin baik nilainya.
+    📌 Catatan:
+    Tabel tidak harus banyak, yang penting bisa membentuk fact table + dimensi
+    Boleh mencantumkan kontribusi masing-masing anggota di laporan. Kalau tidak dicantumkan, nilai dianggap sama rata,
+    nah ide kita seperti ini , kemudian BUATLAH proses ETL dengan PYTHON dan penjelasan didalam satu file IPYNB, oke
+    disini yang menarik untuk proses extract , untuk source data pertama yaitu bps saya ingin langsung scraping dan
+    pencarian dummy yang kemudian dipecahkan menjadi 4 tabel seperti ini CREATE TABLE ref_wilayah (
+    kode_wilayah INT PRIMARY KEY,
+    nama_provinsi VARCHAR(100) NOT NULL
+    );
+    CREATE TABLE ref_komoditas (
+    id_komoditas INT PRIMARY KEY,
+    nama_komoditas VARCHAR(50) NOT NULL,
+    satuan_berat VARCHAR(10) -- Misal: 'Ton' untuk Sapi, 'Kg' untuk Ayam
+    );
+    CREATE TABLE tr_demografi_tahunan (
+    kode_wilayah INT NOT NULL,
+    tahun INT NOT NULL,
+    jumlah_penduduk BIGINT,
+    growth_populasi DECIMAL(5, 4), -- Format desimal (misal: 0.0300)
+    PRIMARY KEY (kode_wilayah, tahun),
+    FOREIGN KEY (kode_wilayah) REFERENCES ref_wilayah(kode_wilayah)
+    );
+    CREATE TABLE tr_statistik_peternakan (
+    kode_wilayah INT NOT NULL,
+    tahun INT NOT NULL,
+    id_komoditas INT NOT NULL,
+    populasi BIGINT,
+    produksi DECIMAL(15, 2), -- Mengakomodasi angka desimal produksi
+    konsumsi_per_kapita DECIMAL(10, 2), -- Variabel 'konsumsi_daging' dari BPS
+    permintaan_ekor BIGINT, -- Variabel 'permintaan_daging' dalam ekor
+    jumlah_dipotong BIGINT, -- Variabel 'jumlah_ternak_potong'
+    harga_baseline DECIMAL(15, 2),
+    PRIMARY KEY (kode_wilayah, tahun, id_komoditas),
+    FOREIGN KEY (kode_wilayah) REFERENCES ref_wilayah(kode_wilayah),
+    FOREIGN KEY (id_komoditas) REFERENCES ref_komoditas(id_komoditas)
+    ); dan jangan dilakukan apa apa dulu karena ini masih di tahap extract, dan langsung injection ke database pertama
+    didalam POSGRES tanpa ubah ke csv terelbih dahulu, kemudian lanjut ke database source awal yaitu ishiknas_db yang
+    telah saya buat sebelumnya dengan kode sql di drive yaitu data_perternakan.sql dan sudah saya load ke MYSQL dengan
+    PHPMYADMIN, kemudian source berikutnya dari csv dengan nama final_data yang ada didrive, oke lakukan tahap extract
+    pertama telebih dahulu dengn lengkap dan jelas didalam IPYNB
+
+    # =========================================================
+    # FULL SCRIPT BPS SCRAPING — AUTO-DISCOVERY TABLE ID
+    # =========================================================
+
+    import requests
+    import pandas as pd
+    import time
+    from tqdm import tqdm
+
+
+
+    import requests
+    import pandas as pd
+    import time
+    from tqdm import tqdm
+
+    # ================= 1. CONFIGURATION =====================
+    API_KEY = "d328d5f200379241367024848106698e"
+    YEARS = [2020, 2021, 2022, 2023, 2024, 2025]
+    OUTPUT_FILE = "data_komoditas_bps_2020_2025.csv"
+
+    # --- Komoditas 1: Jumlah Penduduk ---
+    POPULATION_COMMODITY_NAME = "Jumlah Penduduk"
+    POPULATION_TABLE_IDS = [
+    "WVRlTTcySlZDa3lUcFp6czNwbHl4QT09"
+    ]
+    POPULATION_KEYWORDS = ["jumlah", "penduduk"]
+    POPULATION_COLUMN = "jumlah_penduduk"
+
+    # --- Komoditas 2: Populasi Ternak - Sapi Potong (Ekor) ---
+    CATTLE_POPULATION_NAME = "Populasi Ternak - Sapi Potong (Ekor)"
+    CATTLE_POPULATION_TABLE_IDS = [
+    "S2ViU1dwVTlpSXRwU1MvendHN05Cdz09"
+    ]
+    CATTLE_POPULATION_KEYWORDS = ["populasi", "sapi", "potong"]
+    CATTLE_POPULATION_COLUMN = "populasi_sapi_potong"
+
+    # --- Komoditas 3: Populasi Unggas - Ayam Pedaging (Ekor) ---
+    BROILER_POPULATION_NAME = "Populasi Unggas - Ayam Pedaging (Ekor)"
+    BROILER_POPULATION_TABLE_IDS = [
+    "ckJyVXRMT05MWTNpaW9mdnVseFk0Zz09"
+    ]
+    BROILER_POPULATION_KEYWORDS = ["populasi", "ayam", "pedaging"]
+    BROILER_POPULATION_COLUMN = "populasi_ayam_pedaging"
+
+    # --- Komoditas 4: Produksi Daging Sapi menurut Provinsi (Ton) ---
+    BEEF_PRODUCTION_NAME = "Produksi Daging Sapi menurut Provinsi (Ton)"
+    # This uses a different API endpoint, so no table ID, but a variable ID
+    BEEF_PRODUCTION_VAR_ID = 480 # From URL var/480
+    BEEF_PRODUCTION_KEYWORDS = ["produksi", "daging", "sapi"]
+    BEEF_PRODUCTION_COLUMN = "produksi_daging_sapi"
+
+    # --- Komoditas 5: Produksi Daging Unggas - Ayam Pedaging (kg) ---
+    BROILER_PRODUCTION_NAME = "Produksi Daging Unggas - Ayam Pedaging (kg)"
+    BROILER_PRODUCTION_TABLE_IDS = [
+    "dWhmNFl6WXYyR093R2NjTGM3NG9idz09"
+    ]
+    BROILER_PRODUCTION_KEYWORDS = ["produksi", "daging", "ayam", "pedaging"]
+    BROILER_PRODUCTION_COLUMN = "produksi_daging_ayam_pedaging"
+
+    # ================= 2. CORE FUNCTIONS ====================
+    def get_bps_data(year, table_id, kode_wilayah="0000000"):
+    """Mengambil data BPS berdasarkan parameter dinamis (untuk SIMDASI)"""
+    url = (
+    f"https://webapi.bps.go.id/v1/api/interoperabilitas/datasource/simdasi/"
+    f"id/25/tahun/{year}/id_tabel/{table_id}/"
+    f"wilayah/{kode_wilayah}/key/{API_KEY}"
+    )
+    try:
+    response = requests.get(url, timeout=30)
+    return response.json()
+    except Exception as e:
+    # print(f"Error fetching SIMDASI data: {e}")
+    return None
+
+    def get_bps_production_by_variable(year, var_id, kode_wilayah="0000000"):
+    """Mengambil data BPS berdasarkan variable ID (untuk endpoint model/data)"""
+    # For this endpoint, 'th' parameter expects an internal BPS year ID (e.g., 120 for 2020)
+    bps_year_id = year - 1900 # Assuming this mapping, commonly found in BPS APIs
+    url = (
+    f"https://webapi.bps.go.id/v1/api/list/model/data/lang/ind/domain/{kode_wilayah}/"
+    f"var/{var_id}/th/{bps_year_id}/key/{API_KEY}"
+    )
+    try:
+    response = requests.get(url, timeout=30)
+    return response.json()
+    except Exception as e:
+    # print(f"Error fetching Production data: {e}")
+    return None
+
+    def get_target_var_id(main_data, target_keywords):
+    """Mencari ID kode tersembunyi untuk variabel target berdasarkan kata kunci"""
+    kolom_meta = main_data.get("kolom", {})
+    for var_id, var_info in kolom_meta.items():
+    nama_var = str(var_info.get("nama_variabel", "")).lower()
+    # Check if all target keywords are present in the variable name
+    if all(keyword in nama_var for keyword in target_keywords):
+    return var_id
+    return None
+
+    def parse_bps_simdasi_province_data(raw_data, year, nama_provinsi, target_keywords, value_column_name):
+    """Parsing JSON untuk data SIMDASI, mencari data di level PROVINSI"""
+    rows = []
+    if not raw_data or raw_data.get("status") != "OK":
+    return pd.DataFrame()
+
+    try:
+    main_data = raw_data.get("data", [{}, {}])[1]
+    target_var_id = get_target_var_id(main_data, target_keywords)
+
+    if not target_var_id:
+    return pd.DataFrame()
+
+    for item in main_data.get("data", []):
+    nama_wilayah = item.get("label", "")
+    kode_wilayah = item.get("kode_wilayah", "")
+
+    # Filter hanya ambil baris yang merupakan Total Provinsi
+    if nama_wilayah.lower() == nama_provinsi.lower():
+    value = None
+    if target_var_id in item.get("variables", {}):
+    value = item["variables"][target_var_id].get("value_raw", None)
+
+    rows.append({
+    "tahun": year,
+    "provinsi": nama_provinsi,
+    "kode_wilayah": kode_wilayah,
+    value_column_name: value
+    })
+    break # Found the province total, no need to check other sub-regions
+    return pd.DataFrame(rows)
+    except Exception as e:
+    # print(f"Error parsing SIMDASI data for {nama_provinsi}: {e}")
+    return pd.DataFrame()
+
+    def parse_bps_production_province_data(raw_data, year, target_keywords, value_column_name):
+    """Parsing JSON untuk data produksi, yang mungkin langsung per provinsi"""
+    rows = []
+    if not raw_data or raw_data.get("status") != "OK":
+    return pd.DataFrame()
+
+    try:
+    main_data = raw_data.get("data", [{}, {}])[1]
+    target_var_id = get_target_var_id(main_data, target_keywords)
+
+    if not target_var_id:
+    return pd.DataFrame()
+
+    for item in main_data.get("data", []):
+    nama_wilayah = item.get("label", "")
+    kode_wilayah = item.get("kode_wilayah", "")
+
+    # Assuming data is directly at province level in 'data' list
+    # The BPS production API often returns a list of provinces directly
+    if kode_wilayah != "0000000" and "indonesia" not in nama_wilayah.lower(): # Exclude national total if present
+    value = None
+    if target_var_id in item.get("variables", {}):
+    value = item["variables"][target_var_id].get("value_raw", None)
+
+    if value is not None: # Only add if a value exists
+    rows.append({
+    "tahun": year,
+    "provinsi": nama_wilayah,
+    "kode_wilayah": kode_wilayah,
+    value_column_name: value
+    })
+    return pd.DataFrame(rows)
+    except Exception as e:
+    # print(f"Error parsing Production data: {e}")
+    return pd.DataFrame()
+
+    # ================= 3. MAIN LOOP & AUTO-DISCOVERY ========
+    all_df_raw_commodities = [] # This will temporarily store dfs for each commodity
+    print("🚀 Memulai proses scraping untuk semua komoditas...")
+
+    COMMODITIES_TO_SCRAPE = [
+    {
+    "name": POPULATION_COMMODITY_NAME,
+    "type": "simdasi",
+    "table_ids": POPULATION_TABLE_IDS,
+    "keywords": POPULATION_KEYWORDS,
+    "column_name": POPULATION_COLUMN
+    },
+    {
+    "name": CATTLE_POPULATION_NAME,
+    "type": "simdasi",
+    "table_ids": CATTLE_POPULATION_TABLE_IDS,
+    "keywords": CATTLE_POPULATION_KEYWORDS,
+    "column_name": CATTLE_POPULATION_COLUMN
+    },
+    {
+    "name": BROILER_POPULATION_NAME,
+    "type": "simdasi",
+    "table_ids": BROILER_POPULATION_TABLE_IDS,
+    "keywords": BROILER_POPULATION_KEYWORDS,
+    "column_name": BROILER_POPULATION_COLUMN
+    },
+    {
+    "name": BEEF_PRODUCTION_NAME,
+    "type": "production_var",
+    "var_id": BEEF_PRODUCTION_VAR_ID,
+    "keywords": BEEF_PRODUCTION_KEYWORDS,
+    "column_name": BEEF_PRODUCTION_COLUMN
+    },
+    {
+    "name": BROILER_PRODUCTION_NAME,
+    "type": "simdasi",
+    "table_ids": BROILER_PRODUCTION_TABLE_IDS,
+    "keywords": BROILER_PRODUCTION_KEYWORDS,
+    "column_name": BROILER_PRODUCTION_COLUMN
+    }
+    ]
+
+    # Create an empty DataFrame to store all results
+    final_merged_df = pd.DataFrame()
+
+    for commodity_info in COMMODITIES_TO_SCRAPE:
+    commodity_name = commodity_info["name"]
+    commodity_type = commodity_info["type"]
+    commodity_keywords = commodity_info["keywords"]
+    commodity_column_name = commodity_info["column_name"]
+
+    print(f"\n--- Mengambil data untuk: {commodity_name} ---")
+
+    commodity_dfs_for_all_years = [] # To store dataframes for the current commodity across years
+
+    for year in YEARS:
+    print(f"[{year}] Mencari data untuk {commodity_name}...")
+
+    raw_data_for_year = None
+    active_id = None # Could be table_id or var_id
+
+    if commodity_type == "simdasi":
+    # For SIMDASI, iterate through table IDs to find an active one
+    for tbl_id in commodity_info["table_ids"]:
+    temp_data = get_bps_data(year, tbl_id, "0000000") # Get national data to check validity
+    if temp_data and temp_data.get("status") == "OK":
+    main_data_check = temp_data.get("data", [{}, {}])[1]
+    # Check if the target variable exists in this table
+    if get_target_var_id(main_data_check, commodity_keywords):
+    active_id = tbl_id
+    raw_data_for_year = temp_data # Store national raw data
+    break
+    if not active_id:
+    print(f" ❌ Gagal: Tidak ada tabel yang mengandung data '{commodity_name}' di tahun {year}.\n")
+    continue
+    print(f" ✅ Tabel valid ditemukan ({active_id}). Mulai drill-down wilayah...")
+
+    # Extract list of provinces from national data (assuming SIMDASI structure)
+    main_data_nasional = raw_data_for_year.get("data", [{}, {}])[1]
+    list_provinsi = [
+    {"nama": item.get("label", ""), "kode": item.get("kode_wilayah", "")}
+    for item in main_data_nasional.get("data", [])
+    if item.get("label", "").lower() != "indonesia" and item.get("kode_wilayah", "")
+    ]
+
+    # Loop to get data per province
+    df_year_list_per_commodity_per_year = []
+    for prov in tqdm(list_provinsi, desc=f"Scraping {year} {commodity_name}"):
+    time.sleep(0.5) # Be kind to the API
+    raw_prov = get_bps_data(year, active_id, prov["kode"])
+    df_prov = parse_bps_simdasi_province_data(raw_prov, year, prov["nama"], commodity_keywords, commodity_column_name)
+    if not df_prov.empty:
+    df_year_list_per_commodity_per_year.append(df_prov)
+    if df_year_list_per_commodity_per_year:
+    commodity_dfs_for_all_years.append(pd.concat(df_year_list_per_commodity_per_year, ignore_index=True))
+
+    elif commodity_type == "production_var":
+    # For production_var, directly use the var_id
+    active_id = commodity_info["var_id"]
+    raw_data_for_year = get_bps_production_by_variable(year, active_id, "0000000") # National domain or specific domain
+    if needed
+
+    if not raw_data_for_year or raw_data_for_year.get("status") != "OK":
+    print(f" ❌ Gagal: Tidak ada data '{commodity_name}' untuk variable ID {active_id} di tahun {year}.\n")
+    continue
+    print(f" ✅ Data ditemukan untuk variable ID {active_id}. Mulai parsing wilayah...")
+
+    # The production API often returns provincial data directly, so parse it
+    df_prov_data = parse_bps_production_province_data(raw_data_for_year, year, commodity_keywords,
+    commodity_column_name)
+    if not df_prov_data.empty:
+    commodity_dfs_for_all_years.append(df_prov_data)
+
+    print("") # Spasi antar tahun
+
+    if commodity_dfs_for_all_years:
+    # Concatenate all years for the current commodity
+    commodity_full_df = pd.concat(commodity_dfs_for_all_years, ignore_index=True)
+
+    if final_merged_df.empty:
+    final_merged_df = commodity_full_df
+    else:
+    # Merge with existing dataframe based on 'tahun', 'provinsi', 'kode_wilayah'
+    final_merged_df = pd.merge(final_merged_df, commodity_full_df,
+    on=['tahun', 'provinsi', 'kode_wilayah'],
+    how='outer')
+
+    print("\n🏁 Proses scraping selesai untuk semua komoditas.")
+    all_df = [final_merged_df] # Assign the final merged df to all_df for the next cell
+
+    import pandas as pd
+    import numpy as np
+    import random
+
+    provinsi_list = [
+    "Aceh","Sumatera Utara","Sumatera Barat","Riau","Kepulauan Riau","Jambi",
+    "Sumatera Selatan","Bangka Belitung","Bengkulu","Lampung","DKI Jakarta",
+    "Jawa Barat","Jawa Tengah","DI Yogyakarta","Jawa Timur","Banten","Bali",
+    "Nusa Tenggara Barat","Nusa Tenggara Timur","Kalimantan Barat",
+    "Kalimantan Tengah","Kalimantan Selatan","Kalimantan Timur",
+    "Kalimantan Utara","Sulawesi Utara","Sulawesi Tengah","Sulawesi Selatan",
+    "Sulawesi Tenggara","Gorontalo","Sulawesi Barat","Maluku","Maluku Utara",
+    "Papua","Papua Barat","Papua Selatan","Papua Tengah",
+    "Papua Pegunungan","Papua Barat Daya"
+    ]
+
+    tahun_list = [2020, 2021, 2022, 2023, 2024, 2025]
+
+    def generate_bps_dummy():
+    data = []
+
+    for prov in provinsi_list:
+    base_pop = random.randint(500000, 50000000) # populasi manusia
+
+    for tahun in tahun_list:
+
+    # 🔁 growth populasi (dipakai ulang)
+    growth = round(random.uniform(-0.02, 0.04), 4)
+    jumlah_penduduk = int(base_pop * (1 + growth))
+
+    # 🐄 POPULASI TERNAK
+    populasi_sapi = random.randint(10000, 500000)
+    populasi_ayam = random.randint(50000, 5000000)
+
+    # 🔪 PEMOTONGAN (dummy realistis)
+    potong_sapi = int(populasi_sapi * random.uniform(0.4, 0.7))
+    potong_ayam = int(populasi_ayam * random.uniform(0.5, 0.8))
+
+    # 🥩 PRODUKSI DAGING (ton → asumsi konversi)
+    produksi_sapi = round(potong_sapi * random.uniform(0.2, 0.3), 2)
+    produksi_ayam = round(potong_ayam * random.uniform(0.1, 0.2), 2)
+
+    # 🍗 KONSUMSI PER KAPITA (kg/tahun)
+    konsumsi_sapi = round(random.uniform(1.5, 3.5), 2)
+    konsumsi_ayam = round(random.uniform(8, 15), 2)
+
+    # 📊 PERMINTAAN (Demand)
+    permintaan_sapi = round(jumlah_penduduk * konsumsi_sapi / 1000, 2)
+    permintaan_ayam = round(jumlah_penduduk * konsumsi_ayam / 1000, 2)
+
+    # 💰 BASELINE PRICE
+    harga_sapi = random.randint(90000, 130000)
+    harga_ayam = random.randint(20000, 40000)
+
+    row = {
+    "provinsi": prov,
+    "tahun": tahun,
+    "jumlah_penduduk": jumlah_penduduk,
+
+    "populasi_sapi": populasi_sapi,
+    "populasi_ayam": populasi_ayam,
+
+    "produksi_daging_sapi": produksi_sapi,
+    "produksi_daging_ayam": produksi_ayam,
+
+    "konsumsi_daging_sapi": konsumsi_sapi,
+    "konsumsi_daging_ayam": konsumsi_ayam,
+
+    "permintaan_daging_sapi": permintaan_sapi,
+    "permintaan_daging_ayam": permintaan_ayam,
+
+    "jumlah_ternak_sapi_potong": potong_sapi,
+    "jumlah_ternak_ayam_potong": potong_ayam,
+
+    "harga_baseline_sapi": harga_sapi,
+    "harga_baseline_ayam": harga_ayam,
+
+    "growth_populasi": growth
+    }
+
+    # ⚠️ INJECT MISSING VALUE (REALISTIS)
+    if random.random() < 0.05: row["produksi_daging_sapi"]=None if random.random() < 0.05:
+        row["permintaan_daging_ayam"]=None if random.random() < 0.05: row["harga_baseline_sapi"]=None if random.random()
+        < 0.03: row["jumlah_ternak_sapi_potong"]=None data.append(row) return pd.DataFrame(data) oke khusus bagian
+        scraping terlebih dahulu saya ingin kamu scraping cukup data itu kecuali produksi_daging_sap yang sekarang masuk
+        ke dummy saja karena kekurangan data, dan saya ingin kamu paham ini sebelum kerja ke bagian extract data BPS
+        (SCRAPING DAN DUMMY), Data Source Data BPS Pengumpulan data: API Scrapping dan dummy Periode: tahunan Rentang
+        waktu: 2020 - 2025 Variabel yang digunakan: provinsi tahun jumlah_penduduk (jiwa) populasi_sapi (ekor)
+        populasi_ayam (ekor) produksi_daging_ayam (kg) Dummy: produksi_daging_sapi (ton) konsumsi_daging_sapi (kg per
+        kapita) konsumsi_daging_ayam (kg per kapita) permintaan_daging_sapi (ekor) Permintaan_daging_ayam (ekor)
+        Jumlah_ternak_sapi_potong (ekor) Jumlah_ternak_ayam_potong (ekor) harga_baseline_sapi harga_baseline_ayam
+        growth_populasi Status_supply nah setelah itu ingat acuan kita bukan kode wilayah lagi tapi provinsi, kemudian
+        sebelum melakukan scraping saya ingin banget skamu buat satu cell kode pemeriksaan apakah data idtu ada apa
+        tidak ( bukan masuk ke bagian etlnya tapi hanya saya cek saja jika sudah aman saya hapus kok kodenya , kemudian
+        ternyata kami disuruh mengguanakan airflow juga . Otomatisasi dan Penjadwalan Menilai tingkat otomatisasi,
+        penggunaan penjadwalan (scheduler/orchestrator), dan keandalan pipeline , nah ide saya kita gunkan pyspark x
+        airflow, nah tanpa kerja tugas itu dlu saya ingin melihat implementation plan telrbih dahulu, tapi saya niatnya
+        buat ipynb Extract, Transform, LOad terlebih dahulu, namun fokus kita sekrang buat ulang file ini agar jelas dan
+        sesuai dengan mmaunya kita @contextScopeItemMention dan segala macam oatk atik yang berhubungan di tahap
+        transform, seperti pembersihan, imputasi, ataupun lainnya jangan disini dahulu, sesua dengan tahap yang sudah
+        saya berikan sebelumnya, ayo kerjakan secara rinci jika ada pertanyaan sekarang tanya dulu sbelum berkerja ,
+        untuk panduan scraping bisa kamu lihat disini untuk membantu kamu berkerjan </p>
