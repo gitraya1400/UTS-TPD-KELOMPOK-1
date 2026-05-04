@@ -662,53 +662,28 @@ print(f"   tr_statistik missing populasi  : {sdf_tr_statistik_imputed.filter(F.c
 
 
 # =========================================================
-# CELL 16 · LANGKAH 4A — dim_prov
+# CELL 16 · LANGKAH 4A — dim_prov (FIX FINAL)
 # =========================================================
-# FIX: dropDuplicates nama_provinsi dulu agar tidak ada duplikat
-# FIX: kode_bps diisi dari mapping statis resmi BPS
 
-kode_bps_map = {
-    "Aceh": "11", "Sumatera Utara": "12", "Sumatera Barat": "13",
-    "Riau": "14", "Jambi": "15", "Sumatera Selatan": "16",
-    "Bengkulu": "17", "Lampung": "18", "Bangka Belitung": "19",
-    "Kepulauan Riau": "21", "DKI Jakarta": "31", "Jawa Barat": "32",
-    "Jawa Tengah": "33", "DI Yogyakarta": "34", "Jawa Timur": "35",
-    "Banten": "36", "Bali": "51", "Nusa Tenggara Barat": "52",
-    "Nusa Tenggara Timur": "53", "Kalimantan Barat": "61",
-    "Kalimantan Tengah": "62", "Kalimantan Selatan": "63",
-    "Kalimantan Timur": "64", "Kalimantan Utara": "65",
-    "Sulawesi Utara": "71", "Sulawesi Tengah": "72",
-    "Sulawesi Selatan": "73", "Sulawesi Tenggara": "74",
-    "Gorontalo": "75", "Sulawesi Barat": "76",
-    "Maluku": "81", "Maluku Utara": "82",
-    "Papua Barat": "91", "Papua": "94",
-    "Papua Selatan": "95", "Papua Tengah": "96",
-    "Papua Pegunungan": "97", "Papua Barat Daya": "98",
-}
-kode_expr = F.create_map([F.lit(x) for pair in kode_bps_map.items() for x in pair])
+from pyspark.sql.window import Window
 
 window_dim_prov = Window.orderBy("provinsi")
 
 sdf_dim_prov = (sdf_wilayah_master
-    # FIX: hapus duplikat nama provinsi sebelum beri surrogate key
-    .dropDuplicates(["provinsi"])
+    .select("provinsi")
+    .dropDuplicates()
     .orderBy("provinsi")
-    .withColumn("prov_key", F.row_number().over(window_dim_prov))
-    # FIX: isi kode_bps dari mapping statis resmi BPS
-    .withColumn("kode_bps", kode_expr[F.col("provinsi")])
+    .withColumn("prov_key", F.row_number().over(window_dim_prov))  # surrogate key
+    .withColumn("id_prov", F.col("prov_key"))  # natural key = urutan bersih
     .select(
-        F.col("prov_key"),
-        F.col("kode_bps"),
-        F.col("provinsi").alias("nama_provinsi"),
-        F.col("id_wilayah")
+        "prov_key",
+        "id_prov",
+        F.col("provinsi").alias("nama_provinsi")
     )
 )
 
 sdf_dim_prov.cache()
-print(f"✅ dim_prov: {sdf_dim_prov.count()} baris")
-# Cek tidak ada duplikat
-duplikat = sdf_dim_prov.groupBy("nama_provinsi").count().filter(F.col("count") > 1).count()
-print(f"   Duplikat nama_provinsi: {duplikat} (harusnya 0)")
+print(f"✅ dim_prov (FIXED): {sdf_dim_prov.count()} baris")
 sdf_dim_prov.show(40, truncate=False)
 
 
@@ -721,15 +696,17 @@ sdf_dim_prov.show(40, truncate=False)
 from pyspark.sql.types import StructType, StructField, IntegerType as IT, StringType as ST
 
 schema_kom = StructType([
-    StructField("komoditas_key", IT(), False),
-    StructField("id_komoditas",  IT(), False),
-    StructField("nama_komoditas",ST(), True),
+    StructField("komoditas_key",  IT(), False),
+    StructField("id_komoditas",   IT(), False),
+    StructField("nama_komoditas", ST(), True),
 ])
 sdf_dim_komoditas = spark.createDataFrame(
-    [(1, 1, "Sapi"), (2, 2, "Ayam")],
-    schema_kom
+    [
+        (1, 1, "Sapi"),
+        (2, 2, "Ayam")
+    ],
+    ["komoditas_key", "id_komoditas", "nama_komoditas"]
 )
-
 print("✅ dim_komoditas:")
 sdf_dim_komoditas.show()
 
@@ -902,8 +879,9 @@ sdf_pihps_prov = (sdf_pihps_imputed.alias("p")
 )
 
 # --- Debug: cek jika masih ada yang tidak match ---
-tidak_match = sdf_pihps_prov.filter(F.col("dp.id_wilayah").isNull()) \
+tidak_match = sdf_pihps_prov.filter(F.col("dp.id_prov").isNull()) \
     .select("p.provinsi").distinct()
+
 n_tidak_match = tidak_match.count()
 if n_tidak_match > 0:
     print(f"⚠️  {n_tidak_match} provinsi PIHPS masih tidak match ke dim_prov:")
@@ -911,16 +889,17 @@ if n_tidak_match > 0:
 else:
     print("✅ Semua provinsi PIHPS berhasil match ke dim_prov.")
 
-# Agregasi avg_harga — filter id_wilayah null sebelum groupBy
+# Agregasi avg_harga — filter id_prov null sebelum groupBy
 sdf_agg_harga = (sdf_pihps_prov
-    .filter(F.col("dp.id_wilayah").isNotNull())
+    .filter(F.col("dp.id_prov").isNotNull())
     .groupBy(
-        F.col("dp.id_wilayah"),
+        F.col("dp.id_prov"),
         F.col("p.bulan"),
         F.col("p.tahun"),
         "id_komoditas"
     )
     .agg(F.avg("harga").alias("avg_harga"))
+    .withColumnRenamed("id_prov", "id_wilayah") # Kembalikan nama ke id_wilayah untuk JOIN di Cell 22
 )
 
 print(f"\n✅ Agregasi PIHPS harga: {sdf_agg_harga.count()} baris")
@@ -1273,7 +1252,7 @@ sdf_with_index.select("id_wilayah","bulan","tahun","id_komoditas","supply_risk_i
 
 sdf_fact_raw = (sdf_with_index.alias("f")
     .join(sdf_dim_prov.alias("dp"),
-          F.col("f.id_wilayah") == F.col("dp.id_wilayah"), how="left")
+          F.col("f.id_wilayah") == F.col("dp.id_prov"), how="left")
     .join(sdf_dim_komoditas.alias("dk"),
           F.col("f.id_komoditas") == F.col("dk.id_komoditas"), how="left")
     .join(sdf_dim_waktu.alias("dw"),
@@ -1319,49 +1298,6 @@ sdf_fact_supply_resilience.show(10)
 
 # In[134]:
 
-
-# =========================================================
-# CELL 30 · VALIDASI HASIL TRANSFORM
-# =========================================================
-
-print("=" * 65)
-print("  RINGKASAN TABEL DIMENSI")
-print("=" * 65)
-print(f"  dim_prov       : {sdf_dim_prov.count()} baris")
-print(f"  dim_komoditas  : {sdf_dim_komoditas.count()} baris")
-print(f"  dim_waktu      : {sdf_dim_waktu.count()} baris")
-
-print("\n" + "=" * 65)
-print("  RINGKASAN TABEL FAKTA")
-print("=" * 65)
-print(f"  fact_supply_resilience : {sdf_fact_supply_resilience.count()} baris")
-
-print("\n── Missing Values pada Fact Table ──")
-for col_name in sdf_fact_supply_resilience.columns:
-    n_null = sdf_fact_supply_resilience.filter(F.col(col_name).isNull()).count()
-    if n_null > 0:
-        print(f"  ⚠️  {col_name:<30} → {n_null} null")
-    else:
-        print(f"  ✅ {col_name:<30} → 0 null")
-
-print("\n── Statistik supply_risk_index ──")
-sdf_fact_supply_resilience.select(
-    F.min("supply_risk_index").alias("min"),
-    F.max("supply_risk_index").alias("max"),
-    F.avg("supply_risk_index").alias("mean"),
-    F.stddev("supply_risk_index").alias("std"),
-    F.percentile_approx("supply_risk_index", 0.5).alias("median"),
-).show()
-
-print("\n── Top 10 risiko tertinggi ──")
-(sdf_fact_supply_resilience.alias("f")
-    .join(sdf_dim_prov.alias("dp"),     "prov_key")
-    .join(sdf_dim_komoditas.alias("dk"),"komoditas_key")
-    .join(sdf_dim_waktu.alias("dw"),    "waktu_key")
-    .select("dp.nama_provinsi","dw.tahun","dw.bulan","dk.nama_komoditas","f.supply_risk_index")
-    .orderBy(F.col("f.supply_risk_index").desc())
-    .show(10, truncate=False)
-)
 
 
 # In[135]:

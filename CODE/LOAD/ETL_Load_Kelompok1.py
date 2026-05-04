@@ -125,13 +125,13 @@ DROP TABLE IF EXISTS public.dim_prov               CASCADE;
 
 CREATE TABLE public.dim_prov (
     prov_key        INTEGER PRIMARY KEY,
-    kode_prov       VARCHAR(10),
+    id_prov         INTEGER,
     nama_provinsi   VARCHAR(100) NOT NULL
 );
 
 CREATE TABLE public.dim_komoditas (
     komoditas_key   INTEGER PRIMARY KEY,
-    kode_komoditas  VARCHAR(20),
+    id_komoditas    INTEGER,
     nama_komoditas  VARCHAR(100) NOT NULL
 );
 
@@ -385,10 +385,10 @@ print("Loading tabel dimensi ke Data Warehouse...\n")
 
 # Urutan WAJIB: dimensi dulu baru fakta
 # karena fakta punya FK ke dimensi
-cols_prov = [c for c in ['prov_key','kode_prov','nama_provinsi'] if c in sdf_dim_prov.columns]
+cols_prov = [c for c in ['prov_key','id_prov','nama_provinsi'] if c in sdf_dim_prov.columns]
 write_jdbc(sdf_dim_prov, 'dim_prov', cols_prov)
 
-cols_kom = [c for c in ['komoditas_key','kode_komoditas','nama_komoditas'] if c in sdf_dim_komoditas.columns]
+cols_kom = [c for c in ['komoditas_key','id_komoditas','nama_komoditas'] if c in sdf_dim_komoditas.columns]
 write_jdbc(sdf_dim_komoditas, 'dim_komoditas', cols_kom)
 
 cols_wkt = [c for c in ['waktu_key','tahun','bulan','kuartal','nama_bulan'] if c in sdf_dim_waktu.columns]

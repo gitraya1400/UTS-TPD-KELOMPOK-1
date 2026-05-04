@@ -13,12 +13,13 @@
 # - ❌ **TIDAK ADA** logika bisnis atau kalkulasi turunan
 # 
 
-# In[8]:
+# In[ ]:
 
 
 # =========================================================
 # IMPORT LIBRARY & KONFIGURASI DATABASE
 # =========================================================
+
 import requests
 import pandas as pd
 import numpy as np
@@ -32,7 +33,6 @@ from sqlalchemy import create_engine, text
 import warnings
 warnings.filterwarnings('ignore')
 random.seed(42)
-
 # --- KONEKSI POSTGRESQL (STAGING_DB) ---
 PG_USER = 'postgres'
 PG_PASS = '-RqorROOT44'
@@ -47,7 +47,11 @@ MYSQL_HOST = 'localhost'
 MYSQL_PORT = '3306'
 engine_isikhnas = create_engine(f'mysql+pymysql://{MYSQL_USER}:{MYSQL_PASS}@{MYSQL_HOST}:{MYSQL_PORT}/isikhnas_db')
 
-PIHPS_FILE = "../../DATA/PIPHPS/final_data.xlsx"
+# ✅ WAJIB ADA
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+# --- PATH FILE ---
+PIHPS_FILE = os.path.join(BASE_DIR, "DATA", "PIPHPS", "final_data.xlsx")
 print("✅ Modul dan Konfigurasi Koneksi Berhasil Dimuat.")
 
 
@@ -189,7 +193,7 @@ for commodity_info in COMMODITIES_TO_SCRAPE:
     commodity_name = commodity_info["name"]
     table_ids = commodity_info["table_ids"]
     keywords = commodity_info["keywords"]
-
+    
     status_ok = False
     for tbl_id in table_ids:
         temp_data = _get(year_to_check, tbl_id, "0000000")
@@ -199,7 +203,7 @@ for commodity_info in COMMODITIES_TO_SCRAPE:
                 print(f"✅ {commodity_name.ljust(35)}: OK (Tabel {tbl_id})")
                 status_ok = True
                 break
-
+    
     if not status_ok:
         print(f"❌ {commodity_name.ljust(35)}: GAGAL")
 
@@ -297,25 +301,25 @@ def generate_bps_dummy():
         for tahun in YEARS:
             growth = round(random.uniform(-0.02, 0.04), 4)
             jumlah_penduduk = int(base_pop * (1 + growth))
-
+            
             populasi_sapi = random.randint(10000, 500000)
             populasi_ayam = random.randint(50000, 5000000)
-
+            
             potong_sapi = int(populasi_sapi * random.uniform(0.4, 0.7))
             potong_ayam = int(populasi_ayam * random.uniform(0.5, 0.8))
-
+            
             produksi_sapi = round(potong_sapi * random.uniform(0.2, 0.3), 2)
             produksi_ayam = round(potong_ayam * random.uniform(0.1, 0.2), 2)
-
+            
             konsumsi_sapi = round(random.uniform(1.5, 3.5), 2)
             konsumsi_ayam = round(random.uniform(8, 15), 2)
-
+            
             permintaan_sapi = round(jumlah_penduduk * konsumsi_sapi / 1000, 2)
             permintaan_ayam = round(jumlah_penduduk * konsumsi_ayam / 1000, 2)
-
+            
             harga_sapi = random.randint(90000, 130000)
             harga_ayam = random.randint(20000, 40000)
-
+            
             row = {
                 "provinsi": prov,
                 "tahun": tahun,
@@ -396,7 +400,7 @@ for table in ISIKHNAS_TABLES:
 # ## 3. EXTRACT DATA PIHPS (HARGA HARIAN)
 # 
 
-# In[9]:
+# In[4]:
 
 
 # =========================================================
@@ -432,10 +436,10 @@ try:
         tables = conn.execute(text(
             "SELECT table_name FROM information_schema.tables WHERE table_schema = 'public'"
         )).fetchall()
-
+        
         if not tables:
             print("Tidak ada tabel ditemukan di public schema staging_db.")
-
+        
         for t in sorted([t[0] for t in tables]):
             count = conn.execute(text(f"SELECT COUNT(*) FROM {t}")).scalar()
             print(f"- {t.ljust(30)} : {count} baris")
