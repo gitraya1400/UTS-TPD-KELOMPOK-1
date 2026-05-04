@@ -1,0 +1,200 @@
+================================================================================
+LIVESTOCK INTELLIGENCE DASHBOARD - CONFIGURATION SUMMARY
+================================================================================
+
+⚡ HANYA 3 FILE YANG PERLU DIKONFIGURASI ⚡
+
+================================================================================
+1. FILE: .env (DATABASE CREDENTIALS) 🔴 CRITICAL
+================================================================================
+   LOKASI: /vercel/share/v0-project/R_SHINY_APP/.env
+   STATUS: HARUS DIBUAT (copy dari .env.example)
+   
+   LANGKAH:
+   $ cp .env.example .env
+   $ nano .env    # Edit dengan credentials Anda
+   
+   ISI YANG HARUS DIUBAH (4 hal):
+   ✓ DB_HOST=localhost              → Ganti dengan server PostgreSQL Anda
+   ✓ DB_PORT=5432                   → Biasanya jangan ubah
+   ✓ DB_NAME=datawarehouse_db       → Nama database dwh Anda
+   ✓ DB_USER=postgres               → Username untuk login
+   ✓ DB_PASSWORD=your_password_here → PASSWORD ASLI (RAHASIA!)
+   
+   SISANYA JANGAN UBAH:
+   • SHAPEFILE_PATH=data/ADMINISTRAS_PROVINSI.shp
+   • SHINY_PORT=3838
+   • SHINY_HOST=0.0.0.0
+   
+   CONTOH FILE .env YANG SUDAH BENAR:
+   ---
+   DB_HOST=192.168.1.100
+   DB_PORT=5432
+   DB_NAME=livestock_dwh
+   DB_USER=dwh_admin
+   DB_PASSWORD=MySecurePass123
+   SHAPEFILE_PATH=data/ADMINISTRAS_PROVINSI.shp
+   SHINY_PORT=3838
+   SHINY_HOST=0.0.0.0
+   ---
+
+================================================================================
+2. FOLDER: data/ (SHAPEFILE) 🔴 CRITICAL
+================================================================================
+   LOKASI: /vercel/share/v0-project/R_SHINY_APP/data/
+   STATUS: HARUS PUNYA LIMA FILE INI:
+   
+   FILE YANG DIBUTUHKAN:
+   ✓ ADMINISTRAS_PROVINSI.shp   ← File utama (geometry)
+   ✓ ADMINISTRAS_PROVINSI.shx   ← File index
+   ✓ ADMINISTRAS_PROVINSI.dbf   ← File data
+   ✓ ADMINISTRAS_PROVINSI.prj   ← File projection
+   ✓ ADMINISTRAS_PROVINSI.cpg   ← File codepage
+   
+   LANGKAH:
+   $ mkdir -p /vercel/share/v0-project/R_SHINY_APP/data
+   $ cp /path/to/ADMINISTRAS_PROVINSI.shp* data/
+   $ ls -la data/
+   
+   VERIFIKASI (harus ada 5 file):
+   $ ls data/ADMINISTRAS_PROVINSI.*
+   ADMINISTRAS_PROVINSI.cpg
+   ADMINISTRAS_PROVINSI.dbf
+   ADMINISTRAS_PROVINSI.prj
+   ADMINISTRAS_PROVINSI.shp
+   ADMINISTRAS_PROVINSI.shx
+
+================================================================================
+3. FILE: install_packages.R (R DEPENDENCIES) 🟢 AUTO
+================================================================================
+   LOKASI: /vercel/share/v0-project/R_SHINY_APP/install_packages.R
+   STATUS: JANGAN DIUBAH, HANYA JALANKAN
+   
+   LANGKAH:
+   $ cd /vercel/share/v0-project/R_SHINY_APP
+   $ Rscript install_packages.R
+   
+   TUNGGU SAMPAI SELESAI (5-10 menit)
+   Output harus:
+   ✓ shiny installed successfully
+   ✓ RPostgres installed successfully
+   ✓ ... dst ...
+   ✓ All dependencies installed successfully!
+
+================================================================================
+OPTIONAL - TIDAK WAJIB DIKONFIGURASI (review saja):
+================================================================================
+
+FILE: global.R (LINE 54-60, 89-91)
+   • Sudah set untuk baca dari .env, jangan ubah
+   • Kalau shapefile di lokasi lain, ubah line 91
+
+FILE: ui.R (TITLE & THEME)
+   • Bisa ubah judul di line 3 kalau mau
+   • Bisa ubah warna theme kalau mau
+
+FILE: server.R (DATABASE QUERIES)
+   • Review saja, jangan ubah kecuali ada error
+
+================================================================================
+URUTAN EKSEKUSI - JANGAN LOMPAT!
+================================================================================
+
+STEP 1: SETUP DATABASE CREDENTIALS (5 MENIT)
+   [ ] Edit .env dengan credentials Anda
+   [ ] Test koneksi: psql -h DB_HOST -U DB_USER -d DB_NAME
+
+STEP 2: COPY SHAPEFILE (2 MENIT)
+   [ ] Verify data/ folder ada
+   [ ] Copy ADMINISTRAS_PROVINSI.shp* ke data/
+   [ ] Verify semua 5 file ada: ls data/ADMINISTRAS_PROVINSI.*
+
+STEP 3: INSTALL R PACKAGES (10 MENIT)
+   [ ] Jalankan: Rscript install_packages.R
+   [ ] Tunggu sampai selesai tanpa error
+
+STEP 4: START APLIKASI (1 MENIT)
+   [ ] Jalankan: Rscript -e "shiny::runApp()"
+   [ ] Buka browser: http://localhost:3838
+   [ ] Test: ubah filter, lihat charts update
+
+STEP 5: VERIFIKASI BERHASIL
+   [ ] Dashboard muncul tanpa error
+   [ ] Bisa lihat charts & map
+   [ ] Filter berfungsi
+   [ ] 3 tabs bisa diakses
+
+================================================================================
+QUICK TROUBLESHOOTING
+================================================================================
+
+ERROR: "Database connection failed"
+→ Cek: .env file ada? DB_HOST benar? PostgreSQL running?
+→ Test: psql -h <DB_HOST> -U <DB_USER> -d <DB_NAME>
+
+ERROR: "Shapefile not found"
+→ Cek: ls data/ADMINISTRAS_PROVINSI.shp
+→ Fix: cp /path/to/ADMINISTRAS_PROVINSI.shp* data/
+
+ERROR: "Package not found"
+→ Cek: Rscript install_packages.R
+→ Atau: install.packages("<package_name>") di R console
+
+ERROR: "No data in charts"
+→ Cek: SELECT COUNT(*) FROM fact_supply_resilience;
+→ Coba: Filter "Nasional", tahun 2020-2025, semua bulan
+
+ERROR: "App is slow"
+→ Coba: Kurangi tahun range (2024-2025 saja)
+→ Coba: Pilih specific province (bukan Nasional)
+→ Cek: Database indexes ada?
+
+================================================================================
+FILE STRUCTURE SETELAH KONFIGURASI
+================================================================================
+
+/vercel/share/v0-project/R_SHINY_APP/
+├── app.R                              ✓ Tidak perlu ubah
+├── global.R                           ✓ Tidak perlu ubah (kecuali shapefile path)
+├── ui.R                               ✓ Tidak perlu ubah (optional: customize title)
+├── server.R                           ✓ Tidak perlu ubah
+├── install_packages.R                 ✓ Jalankan saja
+├── .env                               ✓ EDIT DULU! (copy dari .env.example)
+├── .env.example                       ✓ Template, jangan ubah
+├── data/
+│   ├── ADMINISTRAS_PROVINSI.shp       ✓ COPY DARI EXTERNAL!
+│   ├── ADMINISTRAS_PROVINSI.shx       ✓ COPY DARI EXTERNAL!
+│   ├── ADMINISTRAS_PROVINSI.dbf       ✓ COPY DARI EXTERNAL!
+│   ├── ADMINISTRAS_PROVINSI.prj       ✓ COPY DARI EXTERNAL!
+│   └── ADMINISTRAS_PROVINSI.cpg       ✓ COPY DARI EXTERNAL!
+└── [documentation files]              ✓ Untuk reference
+
+================================================================================
+RING-KAS: HANYA 2 HAL YANG PERLU DIKERJAKAN
+================================================================================
+
+1️⃣ KONFIGURASI DATABASE
+   File: .env
+   Aksi: cp .env.example .env → Edit 5 parameter → Test koneksi
+   
+2️⃣ COPY SHAPEFILE
+   Folder: data/
+   Aksi: mkdir -p data → cp ADMINISTRAS_PROVINSI.shp* data/ → Verify
+
+SETELAH ITU: Aplikasi siap! ✓
+
+================================================================================
+ESTIMASI WAKTU TOTAL: 30 MENIT
+================================================================================
+
+Breakdown:
+• Setup .env: 5 menit
+• Copy shapefile: 2 menit
+• Install packages: 10 menit
+• Test aplikasi: 5 menit
+• Troubleshooting (kalau ada): 10 menit
+
+================================================================================
+Status: READY TO CONFIGURE
+Last Updated: 2026-05-04
+================================================================================
