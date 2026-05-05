@@ -1,0 +1,42 @@
+# =============================================================================
+# LIVESTOCK INTELLIGENCE - R PACKAGE REQUIREMENTS
+# Install dengan: install.packages(readLines("REQUIREMENTS.txt"))
+# =============================================================================
+
+# Core Shiny
+shiny
+shinydashboard
+shinyWidgets
+
+# Data Processing
+tidyverse
+dplyr
+tidyr
+stringr
+lubridate
+
+# Visualization
+plotly
+ggplot2
+gridExtra
+DT
+
+# Spatial
+sf
+leaflet
+rgdal
+sp
+
+# Database
+RPostgres
+DBI
+pool
+
+# Statistics
+scales
+corpcor
+
+# Utilities
+dotenv
+readxl
+writexl
