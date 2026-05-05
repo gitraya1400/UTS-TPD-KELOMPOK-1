@@ -17,9 +17,11 @@ Sistem ini mampu menghasilkan **Supply Risk Index** per provinsi, per komoditas 
 
 | Nama | NIM |
 |------|-----|
-| *(isi nama anggota)* | *(isi NIM)* |
-| *(isi nama anggota)* | *(isi NIM)* |
-| *(isi nama anggota)* | *(isi NIM)* |
+| *Anggita Cristin Meylani* | *222312982* |
+| *Clarisse De Delgada M. Soares* | *222313033* |
+| *M Rezky Raya Kilwouw* | *222313190* |
+| *Nyimas Virna S. L. R* | *222313307* |
+
 
 ---
 
@@ -194,12 +196,12 @@ Edit bagian konfigurasi di setiap script ETL:
 ```python
 # Di ETL_Extract_Kelompok1.py
 PG_USER = 'postgres'
-PG_PASS = 'password_anda'
+PG_PASS = 'password'
 PG_HOST = 'localhost'
 PG_PORT = '5432'
 
 MYSQL_USER = 'root'
-MYSQL_PASS = 'password_anda'
+MYSQL_PASS = ''
 ```
 
 ### 4. Jalankan Pipeline ETL
