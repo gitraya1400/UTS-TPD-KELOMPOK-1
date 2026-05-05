@@ -2,12 +2,12 @@
 -- PostgreSQL database dump
 --
 
-\restrict oydUtXCpwYwRpf0sjo5jvmXRu7tcmLL3Fx5H2k1hlluJhec4QIWprDTCoKeibbc
+\restrict qio05KoDZfXbA5jbakk3oAlKIzaF2Fgcv5qcgPk2n3Mpq5E2DPayOrtcjqbVBR3
 
 -- Dumped from database version 18.3
 -- Dumped by pg_dump version 18.3
 
--- Started on 2026-05-04 21:54:04
+-- Started on 2026-05-05 17:52:37
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -26,7 +26,7 @@ SET default_tablespace = '';
 SET default_table_access_method = heap;
 
 --
--- TOC entry 220 (class 1259 OID 25400)
+-- TOC entry 220 (class 1259 OID 25599)
 -- Name: dim_komoditas; Type: TABLE; Schema: public; Owner: postgres
 --
 
@@ -40,7 +40,7 @@ CREATE TABLE public.dim_komoditas (
 ALTER TABLE public.dim_komoditas OWNER TO postgres;
 
 --
--- TOC entry 219 (class 1259 OID 25393)
+-- TOC entry 219 (class 1259 OID 25592)
 -- Name: dim_prov; Type: TABLE; Schema: public; Owner: postgres
 --
 
@@ -54,7 +54,7 @@ CREATE TABLE public.dim_prov (
 ALTER TABLE public.dim_prov OWNER TO postgres;
 
 --
--- TOC entry 221 (class 1259 OID 25407)
+-- TOC entry 221 (class 1259 OID 25606)
 -- Name: dim_waktu; Type: TABLE; Schema: public; Owner: postgres
 --
 
@@ -70,7 +70,7 @@ CREATE TABLE public.dim_waktu (
 ALTER TABLE public.dim_waktu OWNER TO postgres;
 
 --
--- TOC entry 223 (class 1259 OID 25418)
+-- TOC entry 223 (class 1259 OID 25617)
 -- Name: fact_supply_resilience; Type: TABLE; Schema: public; Owner: postgres
 --
 
@@ -99,7 +99,7 @@ CREATE TABLE public.fact_supply_resilience (
 ALTER TABLE public.fact_supply_resilience OWNER TO postgres;
 
 --
--- TOC entry 222 (class 1259 OID 25417)
+-- TOC entry 222 (class 1259 OID 25616)
 -- Name: fact_supply_resilience_fact_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
 --
 
@@ -124,7 +124,7 @@ ALTER SEQUENCE public.fact_supply_resilience_fact_id_seq OWNED BY public.fact_su
 
 
 --
--- TOC entry 4868 (class 2604 OID 25421)
+-- TOC entry 4868 (class 2604 OID 25620)
 -- Name: fact_supply_resilience fact_id; Type: DEFAULT; Schema: public; Owner: postgres
 --
 
@@ -132,7 +132,7 @@ ALTER TABLE ONLY public.fact_supply_resilience ALTER COLUMN fact_id SET DEFAULT 
 
 
 --
--- TOC entry 4872 (class 2606 OID 25406)
+-- TOC entry 4872 (class 2606 OID 25605)
 -- Name: dim_komoditas dim_komoditas_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -141,7 +141,7 @@ ALTER TABLE ONLY public.dim_komoditas
 
 
 --
--- TOC entry 4870 (class 2606 OID 25399)
+-- TOC entry 4870 (class 2606 OID 25598)
 -- Name: dim_prov dim_prov_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -150,7 +150,7 @@ ALTER TABLE ONLY public.dim_prov
 
 
 --
--- TOC entry 4874 (class 2606 OID 25414)
+-- TOC entry 4874 (class 2606 OID 25613)
 -- Name: dim_waktu dim_waktu_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -159,7 +159,7 @@ ALTER TABLE ONLY public.dim_waktu
 
 
 --
--- TOC entry 4876 (class 2606 OID 25416)
+-- TOC entry 4876 (class 2606 OID 25615)
 -- Name: dim_waktu dim_waktu_tahun_bulan_key; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -168,7 +168,7 @@ ALTER TABLE ONLY public.dim_waktu
 
 
 --
--- TOC entry 4878 (class 2606 OID 25427)
+-- TOC entry 4878 (class 2606 OID 25626)
 -- Name: fact_supply_resilience fact_supply_resilience_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -177,7 +177,7 @@ ALTER TABLE ONLY public.fact_supply_resilience
 
 
 --
--- TOC entry 4880 (class 2606 OID 25429)
+-- TOC entry 4880 (class 2606 OID 25628)
 -- Name: fact_supply_resilience fact_supply_resilience_prov_key_waktu_key_komoditas_key_key; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -186,7 +186,7 @@ ALTER TABLE ONLY public.fact_supply_resilience
 
 
 --
--- TOC entry 4881 (class 1259 OID 25447)
+-- TOC entry 4881 (class 1259 OID 25646)
 -- Name: idx_fact_komoditas; Type: INDEX; Schema: public; Owner: postgres
 --
 
@@ -194,7 +194,7 @@ CREATE INDEX idx_fact_komoditas ON public.fact_supply_resilience USING btree (ko
 
 
 --
--- TOC entry 4882 (class 1259 OID 25445)
+-- TOC entry 4882 (class 1259 OID 25644)
 -- Name: idx_fact_prov; Type: INDEX; Schema: public; Owner: postgres
 --
 
@@ -202,7 +202,7 @@ CREATE INDEX idx_fact_prov ON public.fact_supply_resilience USING btree (prov_ke
 
 
 --
--- TOC entry 4883 (class 1259 OID 25448)
+-- TOC entry 4883 (class 1259 OID 25647)
 -- Name: idx_fact_risk; Type: INDEX; Schema: public; Owner: postgres
 --
 
@@ -210,7 +210,7 @@ CREATE INDEX idx_fact_risk ON public.fact_supply_resilience USING btree (supply_
 
 
 --
--- TOC entry 4884 (class 1259 OID 25446)
+-- TOC entry 4884 (class 1259 OID 25645)
 -- Name: idx_fact_waktu; Type: INDEX; Schema: public; Owner: postgres
 --
 
@@ -218,7 +218,7 @@ CREATE INDEX idx_fact_waktu ON public.fact_supply_resilience USING btree (waktu_
 
 
 --
--- TOC entry 4885 (class 2606 OID 25440)
+-- TOC entry 4885 (class 2606 OID 25639)
 -- Name: fact_supply_resilience fact_supply_resilience_komoditas_key_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -227,7 +227,7 @@ ALTER TABLE ONLY public.fact_supply_resilience
 
 
 --
--- TOC entry 4886 (class 2606 OID 25430)
+-- TOC entry 4886 (class 2606 OID 25629)
 -- Name: fact_supply_resilience fact_supply_resilience_prov_key_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -236,7 +236,7 @@ ALTER TABLE ONLY public.fact_supply_resilience
 
 
 --
--- TOC entry 4887 (class 2606 OID 25435)
+-- TOC entry 4887 (class 2606 OID 25634)
 -- Name: fact_supply_resilience fact_supply_resilience_waktu_key_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -244,11 +244,11 @@ ALTER TABLE ONLY public.fact_supply_resilience
     ADD CONSTRAINT fact_supply_resilience_waktu_key_fkey FOREIGN KEY (waktu_key) REFERENCES public.dim_waktu(waktu_key);
 
 
--- Completed on 2026-05-04 21:54:04
+-- Completed on 2026-05-05 17:52:37
 
 --
 -- PostgreSQL database dump complete
 --
 
-\unrestrict oydUtXCpwYwRpf0sjo5jvmXRu7tcmLL3Fx5H2k1hlluJhec4QIWprDTCoKeibbc
+\unrestrict qio05KoDZfXbA5jbakk3oAlKIzaF2Fgcv5qcgPk2n3Mpq5E2DPayOrtcjqbVBR3
 

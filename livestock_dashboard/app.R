@@ -13,7 +13,7 @@
 # ============================================================
 
 # ---- INSTALL CHECK ----
-packages <- c("shiny","shinydashboard","DBI","RPostgres","dplyr","tidyr",
+packages <- c("shiny","shinydashboard","dplyr","tidyr",
               "ggplot2","plotly","leaflet","sf","scales","DT","shinycssloaders",
               "fresh","htmltools","lubridate","RColorBrewer",
               "rnaturalearth","rnaturalearthdata")
@@ -26,8 +26,6 @@ for (pkg in packages) {
 
 library(shiny)
 library(shinydashboard)
-library(DBI)
-library(RPostgres)
 library(dplyr)
 library(tidyr)
 library(ggplot2)
@@ -45,16 +43,15 @@ library(rnaturalearth)
 library(rnaturalearthdata)
 
 # ============================================================
-# KONFIGURASI DATABASE
+# KONFIGURASI DATA — CSV (untuk deployment shinyapps.io)
 # ============================================================
+# Cara update data:
+#   1. Di komputer lokal, jalankan script export_to_csv.R
+#      (atau query manual dan simpan hasilnya sebagai data/olap_cube.csv)
+#   2. Overwrite file data/olap_cube.csv
+#   3. Re-deploy ke shinyapps.io
 
-DB_CONFIG <- list(
-  host     = "localhost",
-  port     = 5432,
-  dbname   = "datawarehouse_db",
-  user     = "postgres",
-  password = "-RqorROOT44"   # ganti sesuai env
-)
+CSV_PATH <- "data/olap_cube.csv"
 
 # ============================================================
 # PATH SHAPEFILE — ROBUST & PORTABEL
@@ -92,6 +89,7 @@ PROV_NAME_MAP <- c(
   "BENGKULU"                       = "BENGKULU",
   "LAMPUNG"                        = "LAMPUNG",
   "DKI JAKARTA"                    = "DKI JAKARTA",
+  "JAKARTA RAYA"                   = "DKI JAKARTA",   # <--- TAMBAHAN UNTUK RNATURALEARTH
   "JAKARTA"                        = "DKI JAKARTA",
   "JAWA BARAT"                     = "JAWA BARAT",
   "WEST JAVA"                      = "JAWA BARAT",
@@ -185,58 +183,46 @@ PROV_CENTROID <- data.frame(
 # FUNGSI KONEKSI & QUERY
 # ============================================================
 
-get_con <- function() {
-  dbConnect(
-    RPostgres::Postgres(),
-    host     = DB_CONFIG$host,
-    port     = DB_CONFIG$port,
-    dbname   = DB_CONFIG$dbname,
-    user     = DB_CONFIG$user,
-    password = DB_CONFIG$password
-  )
-}
-
 load_olap_cube <- function() {
-  con <- get_con()
-  on.exit(dbDisconnect(con))
-  query <- "
-    SELECT
-      f.*,
-      p.id_prov, p.nama_provinsi,
-      w.tahun, w.bulan, w.kuartal, w.nama_bulan,
-      k.id_komoditas, k.nama_komoditas
-    FROM fact_supply_resilience f
-    JOIN dim_prov       p ON f.prov_key       = p.prov_key
-    JOIN dim_waktu      w ON f.waktu_key       = w.waktu_key
-    JOIN dim_komoditas  k ON f.komoditas_key   = k.komoditas_key
-    ORDER BY w.tahun, w.bulan, p.nama_provinsi
-  "
-  df <- dbGetQuery(con, query)
+  if (!file.exists(CSV_PATH)) {
+    stop(paste0("File CSV tidak ditemukan: ", CSV_PATH,
+                "\nJalankan export_to_csv.R terlebih dahulu."))
+  }
+  df <- read.csv(CSV_PATH, stringsAsFactors = FALSE, encoding = "UTF-8")
+  # Pastikan tipe kolom yang benar
+  df$tahun  <- as.integer(df$tahun)
+  df$bulan  <- as.integer(df$bulan)
+  df$kuartal <- as.integer(df$kuartal)
+  df$supply_risk_index <- as.numeric(df$supply_risk_index)
+  df$avg_harga         <- as.numeric(df$avg_harga)
+  df$sum_jumlah_sakit  <- as.numeric(df$sum_jumlah_sakit)
+  df$sum_jumlah_mati   <- as.numeric(df$sum_jumlah_mati)
+  df$sum_vol_mutasi    <- as.numeric(df$sum_vol_mutasi)
+  df$populasi_ternak   <- as.numeric(df$populasi_ternak)
   # Pastikan nama provinsi uppercase untuk join peta
   df$nama_provinsi <- toupper(trimws(df$nama_provinsi))
   df
 }
 
 # ============================================================
-# THEME KUSTOM
+# THEME KUSTOM - Putih & Hijau (Sesuai Logo)
 # ============================================================
-
 custom_theme <- create_theme(
   adminlte_color(
-    light_blue  = "#1a3a5c",
+    light_blue  = "#1e8449", # Mengubah warna primary default jadi Hijau Logo
     red         = "#c0392b",
-    green       = "#1e8449",
-    orange      = "#d68910",
+    green       = "#27ae60",
+    orange      = "#f39c12",
     yellow      = "#f1c40f"
   ),
   adminlte_sidebar(
     width        = "260px",
-    dark_bg      = "#0d1f35",
-    dark_hover_bg= "#1a3a5c",
-    dark_color   = "#ccd6e0"
+    dark_bg      = "#ffffff",   # Sidebar Background Putih
+    dark_hover_bg= "#eafaf1",   # Warna hijau muda saat menu di-hover
+    dark_color   = "#2c3e50"    # Warna teks menu (Abu-abu gelap)
   ),
   adminlte_global(
-    content_bg   = "#f4f6f9",
+    content_bg   = "#f8f9fa",   # Background konten abu-abu sangat muda/bersih
     box_bg       = "#ffffff",
     info_box_bg  = "#ffffff"
   )
@@ -246,21 +232,20 @@ custom_theme <- create_theme(
 # HELPER
 # ============================================================
 
-alert_status <- function(risk) {
+alert_color <- function(risk) {
   dplyr::case_when(
-    risk >= 0.7 ~ "KRITIS",
-    risk >= 0.5 ~ "WASPADA",
-    risk >= 0.3 ~ "HATI-HATI",
-    TRUE        ~ "AMAN"
+    risk >= 0.6 ~ "#c0392b",   # merah  - BAHAYA
+    risk >= 0.3 ~ "#d68910",   # orange - WASPADA
+    TRUE        ~ "#1e8449"    # hijau  - AMAN
   )
 }
 
-alert_color <- function(risk) {
+# Fungsi label status (dipakai di mutate)
+alert_status <- function(risk) {
   dplyr::case_when(
-    risk >= 0.7 ~ "#c0392b",
-    risk >= 0.5 ~ "#d35400",
-    risk >= 0.3 ~ "#d4ac0d",
-    TRUE        ~ "#1e8449"
+    risk >= 0.6 ~ "BAHAYA",
+    risk >= 0.3 ~ "WASPADA",
+    TRUE        ~ "AMAN"
   )
 }
 
@@ -299,14 +284,15 @@ ui <- dashboardPage(
   # ---- HEADER ----
   dashboardHeader(
     title = tags$span(
-      tags$img(src = "https://upload.wikimedia.org/wikipedia/commons/thumb/9/93/STIS_logo.png/120px-STIS_logo.png",
-               height = "28px", style = "margin-right:8px; vertical-align:middle;"),
-      tags$b("Livestock Intelligence", style = "font-size:15px; color:#fff;")
+      # Memanggil logo dari folder www
+      tags$img(src = "logo.png", height = "35px", style = "margin-right:8px; vertical-align:middle; display:inline-block;", onerror = "this.style.display='none'"),
+      tags$b("LIVESTOCK", style = "font-size:16px; color:#1e8449; font-weight:800; letter-spacing: 1px;"),
+      tags$span(" DASHBOARD", style = "font-size:14px; color:#2c3e50; font-weight:600;")
     ),
     titleWidth = 260,
     tags$li(class = "dropdown",
-            tags$div(style = "padding:10px 20px; color:#aec6e8; font-size:12px;",
-                     tags$i(class = "fa fa-university"), " Kelompok 1 · 3SI1 · STIS"
+            tags$div(style = "padding:12px 20px; color:#1e8449; font-size:13px; font-weight:bold;",
+                     tags$i(class = "fa fa-leaf"), " Kelompok 1 · 3SI1 · STIS"
             )
     )
   ),
@@ -353,28 +339,43 @@ ui <- dashboardPage(
       tags$style(HTML("
         body, .content-wrapper, .main-footer { font-family: 'IBM Plex Sans', sans-serif; }
         h1,h2,h3,h4 { font-family: 'Source Serif 4', serif; }
-        .main-header .logo { background: #0d1f35 !important; border-bottom:1px solid #1a3a5c !important; }
-        .main-header .navbar { background: #0d1f35 !important; border-bottom:1px solid #1a3a5c !important; }
-        .skin-blue .main-sidebar { background: #0d1f35 !important; }
-        .skin-blue .sidebar-menu > li > a { color: #ccd6e0 !important; font-size:13px; }
+        
+        /* OVERRIDE HEADER & NAVBAR JADI PUTIH */
+        .main-header .logo { background: #ffffff !important; border-bottom:1px solid #e9ecef !important; border-right:1px solid #e9ecef !important; }
+        .main-header .navbar { background: #ffffff !important; border-bottom:1px solid #e9ecef !important; }
+        .main-header .sidebar-toggle { color: #1e8449 !important; }
+        .main-header .sidebar-toggle:hover { background: #eafaf1 !important; color: #1e8449 !important; }
+        
+        /* OVERRIDE SIDEBAR JADI PUTIH & HIJAU */
+        .skin-blue .main-sidebar { background: #ffffff !important; border-right:1px solid #e9ecef !important; }
+        .skin-blue .sidebar-menu > li > a { color: #2c3e50 !important; font-size:13px; font-weight:500; }
+        .skin-blue .sidebar-menu > li > a .fa { color: #1e8449; width:20px; }
         .skin-blue .sidebar-menu > li.active > a,
-        .skin-blue .sidebar-menu > li > a:hover { background: #1a3a5c !important; color:#ffffff !important; }
-        .content-wrapper { background: #f0f3f8 !important; }
-        .box { border-radius:6px; border-top:0; box-shadow:0 1px 6px rgba(0,0,0,.07); }
-        .box-header { border-bottom:1px solid #eef0f3; padding:12px 16px; }
-        .box-title { font-family:'Source Serif 4',serif; font-size:15px; font-weight:600; color:#0d1f35; }
-        .info-box { border-radius:6px; box-shadow:0 1px 6px rgba(0,0,0,.07); min-height:90px; }
-        .small-box { border-radius:6px; box-shadow:0 2px 8px rgba(0,0,0,.1); }
-        .kpi-card { background:#fff; border-radius:8px; padding:20px 24px; box-shadow:0 1px 6px rgba(0,0,0,.07); margin-bottom:16px; }
-        .section-title { font-family:'Source Serif 4',serif; font-size:18px; font-weight:700; color:#0d1f35;
-                         border-left:4px solid #1a3a5c; padding-left:12px; margin:16px 0 12px; }
-        .alert-banner { border-radius:6px; padding:12px 16px; margin-bottom:12px; font-size:13px; }
-        .alert-kritis  { background:#fdecea; border-left:4px solid #c0392b; color:#7b241c; }
-        .alert-waspada { background:#fef5ec; border-left:4px solid #d35400; color:#784212; }
-        .alert-aman    { background:#eafaf1; border-left:4px solid #1e8449; color:#1d6a39; }
+        .skin-blue .sidebar-menu > li > a:hover { background: #1e8449 !important; color:#ffffff !important; border-radius:6px; margin:0 8px; }
+        .skin-blue .sidebar-menu > li.active > a .fa,
+        .skin-blue .sidebar-menu > li > a:hover .fa { color: #ffffff !important; }
+        
+        /* BOX & COMPONENT STYLE */
+        .content-wrapper { background: #f8f9fa !important; }
+        .box { border-radius:8px; border-top:3px solid #1e8449; box-shadow:0 2px 10px rgba(0,0,0,.05); }
+        .box-header { border-bottom:1px solid #e9ecef; padding:12px 16px; }
+        .box-title { font-family:'Source Serif 4',serif; font-size:15px; font-weight:600; color:#2c3e50; }
+        .info-box { border-radius:8px; box-shadow:0 2px 10px rgba(0,0,0,.05); min-height:90px; }
+        .small-box { border-radius:8px; box-shadow:0 2px 10px rgba(0,0,0,.05); }
+        
+        /* SECTION TITLE (Garis Kiri Hijau) */
+        .section-title { font-family:'Source Serif 4',serif; font-size:18px; font-weight:700; color:#2c3e50;
+                         border-left:4px solid #1e8449; padding-left:12px; margin:16px 0 12px; }
+                         
         table.dataTable { font-size:12px; }
-        .peta-info { background:#fff8e7; border:1px solid #f0c040; border-radius:6px; padding:10px 14px;
-                     font-size:12px; color:#7d5a00; margin-bottom:10px; }
+        .dataTables_wrapper .dataTables_paginate .paginate_button.current { background:#1e8449 !important; border-color:#1e8449 !important; color:#fff !important; }
+        /* FILTER SIDEBAR — label & select input terlihat di atas background putih */
+        .main-sidebar .form-group label { color: #2c3e50 !important; font-size:12px; font-weight:600; }
+        .main-sidebar .selectize-input { background:#f8f9fa !important; border:1px solid #ced4da !important; color:#2c3e50 !important; border-radius:5px; }
+        .main-sidebar .selectize-input.focus { border-color:#1e8449 !important; box-shadow:0 0 0 2px rgba(30,132,73,.15) !important; }
+        .main-sidebar .selectize-dropdown { border:1px solid #ced4da !important; background:#ffffff !important; color:#2c3e50 !important; }
+        .main-sidebar .selectize-dropdown .option:hover { background:#eafaf1 !important; color:#1e8449 !important; }
+        .main-sidebar p { color: #2c3e50 !important; }
       "))
     ),
     
@@ -488,22 +489,46 @@ ui <- dashboardPage(
       # TAB 5: SUPPLY–DEMAND GAP
       # =========================================================
       tabItem(tabName = "gap",
-              fluidRow(column(12, tags$div(class="section-title", "Supply–Demand Gap Analysis"))),
+              
+              fluidRow(
+                column(12, tags$div(class="section-title", "Supply–Demand Gap Analysis"))
+              ),
+              
+              # KPI
               fluidRow(
                 valueBoxOutput("gap_surplus_mo",   width=3),
                 valueBoxOutput("gap_deficit_mo",   width=3),
                 valueBoxOutput("gap_avg_logistik", width=3),
                 valueBoxOutput("gap_avg_konsumsi", width=3)
               ),
+              
+              # 🔥 MAIN CHART (WAJIB)
               fluidRow(
-                column(12, box(width=NULL, title="Timeline Gap Logistik Bulanan (Mutasi − Permintaan)",
-                               withSpinner(plotlyOutput("gap_timeline", height="320px"), color="#1a3a5c")))
+                column(12,
+                       box(width=NULL,
+                           title="Supply vs Demand (Konsumsi Sapi)",
+                           withSpinner(plotlyOutput("gap_supply_demand", height="350px"),
+                                       color="#1a3a5c")
+                       )
+                )
               ),
+              
+              # DETAIL ANALISIS
               fluidRow(
-                column(6, box(width=NULL, title="Top Provinsi Deficit Terbesar",
-                              withSpinner(plotlyOutput("gap_deficit_prov", height="320px"), color="#1a3a5c"))),
-                column(6, box(width=NULL, title="Gap Konsumsi: Karkas vs Target (Surplus/Defisit bulan)",
-                              withSpinner(plotlyOutput("gap_konsumsi", height="320px"), color="#1a3a5c")))
+                column(6,
+                       box(width=NULL,
+                           title="Top Provinsi Deficit Terbesar",
+                           withSpinner(plotlyOutput("gap_deficit_prov", height="320px"),
+                                       color="#1a3a5c")
+                       )
+                ),
+                column(6,
+                       box(width=NULL,
+                           title="Gap Konsumsi: Surplus vs Defisit",
+                           withSpinner(plotlyOutput("gap_konsumsi", height="320px"),
+                                       color="#1a3a5c")
+                       )
+                )
               )
       ),
       
@@ -525,16 +550,7 @@ ui <- dashboardPage(
                                                  "Jumlah Sakit"       = "sum_jumlah_sakit",
                                                  "Vol Mutasi"         = "sum_vol_mutasi")),
                            tags$hr(),
-                           tags$p(tags$b("Legenda Zona:"), style="font-size:12px;"),
-                           tags$div(style="font-size:12px; line-height:2;",
-                                    tags$span(style="background:#c0392b;color:#fff;padding:2px 8px;border-radius:4px;","KRITIS ≥ 0.7"),
-                                    tags$br(),
-                                    tags$span(style="background:#d35400;color:#fff;padding:2px 8px;border-radius:4px;","WASPADA ≥ 0.5"),
-                                    tags$br(),
-                                    tags$span(style="background:#d4ac0d;color:#fff;padding:2px 8px;border-radius:4px;","HATI-HATI ≥ 0.3"),
-                                    tags$br(),
-                                    tags$span(style="background:#1e8449;color:#fff;padding:2px 8px;border-radius:4px;","AMAN < 0.3")
-                           )
+                           uiOutput("peta_legenda_ui")
                        )
                 ),
                 column(9,
@@ -554,13 +570,19 @@ ui <- dashboardPage(
       tabItem(tabName = "supply",
               fluidRow(column(12, tags$div(class="section-title","Ketergantungan & Dependensi Supply"))),
               fluidRow(
+                column(12, box(width=NULL,
+                               tags$p(tags$b("Filter Provinsi (Pareto & Treemap):"), style="font-size:12px; margin-bottom:4px;"),
+                               uiOutput("supply_prov_filter_ui")
+                ))
+              ),
+              fluidRow(
                 column(6, box(width=NULL, title="Pareto Chart — Konsentrasi Pasokan Nasional",
                               withSpinner(plotlyOutput("supply_pareto", height="380px"), color="#1a3a5c"))),
                 column(6, box(width=NULL, title="Proporsi Supply per Provinsi (Treemap)",
                               withSpinner(plotlyOutput("supply_treemap", height="380px"), color="#1a3a5c")))
               ),
               fluidRow(
-                column(12, box(width=NULL, title="Provinsi Kritis: Supply ≥ 10% Nasional & Risk ≥ 0.5",
+                column(12, box(width=NULL, title="Provinsi Rentan: Supply ≥ 10% Nasional & Risk ≥ 0.3",
                                withSpinner(DTOutput("supply_vulner_table"), color="#1a3a5c")))
               )
       ),
@@ -680,24 +702,61 @@ server <- function(input, output, session) {
     selectInput("peta_tahun","Tahun", choices=thn, selected=thn[1])
   })
   
+  output$peta_legenda_ui <- renderUI({
+    metric <- input$peta_metric
+    if (is.null(metric) || metric == "supply_risk_index") {
+      tagList(
+        tags$p(tags$b("Legenda Zona:"), style="font-size:12px;"),
+        tags$div(style="font-size:12px; line-height:2;",
+                 tags$span(style="background:#c0392b;color:#fff;padding:2px 8px;border-radius:4px;","BAHAYA ≥ 0.6"),
+                 tags$br(),
+                 tags$span(style="background:#d68910;color:#fff;padding:2px 8px;border-radius:4px;","WASPADA ≥ 0.3"),
+                 tags$br(),
+                 tags$span(style="background:#1e8449;color:#fff;padding:2px 8px;border-radius:4px;","AMAN < 0.3")
+        )
+      )
+    } else if (metric == "avg_harga") {
+      tagList(
+        tags$p(tags$b("Legenda Warna:"), style="font-size:12px;"),
+        tags$div(style="font-size:12px; color:#555;",
+                 "Gradasi biru: semakin gelap = harga rata-rata lebih tinggi"
+        )
+      )
+    } else if (metric == "sum_jumlah_sakit") {
+      tagList(
+        tags$p(tags$b("Legenda Warna:"), style="font-size:12px;"),
+        tags$div(style="font-size:12px; color:#555;",
+                 "Gradasi merah: semakin gelap = jumlah hewan sakit lebih banyak"
+        )
+      )
+    } else if (metric == "sum_vol_mutasi") {
+      tagList(
+        tags$p(tags$b("Legenda Warna:"), style="font-size:12px;"),
+        tags$div(style="font-size:12px; color:#555;",
+                 "Gradasi ungu: semakin gelap = volume mutasi lebih tinggi"
+        )
+      )
+    }
+  })
+  
   # ===========================================================
   # TAB 1: BERANDA
   # ===========================================================
   
   output$kpi_risk_avg <- renderValueBox({
     avg <- mean(cube()$supply_risk_index, na.rm=TRUE)
-    col <- if (avg >= 0.5) "red" else if (avg >= 0.3) "orange" else "green"
+    col <- if (avg >= 0.6) "red" else if (avg >= 0.3) "orange" else "green"
     valueBox(round(avg,3), "Rata-rata Risk Index", icon=icon("thermometer-half"), color=col)
   })
   
   output$kpi_kritis <- renderValueBox({
-    n <- sum(cube()$supply_risk_index >= 0.7, na.rm=TRUE)
-    valueBox(format(n, big.mark="."), "Observasi KRITIS (≥0.7)", icon=icon("times-circle"), color="red")
+    n <- sum(cube()$supply_risk_index >= 0.6, na.rm=TRUE)
+    valueBox(format(n, big.mark="."), "Observasi BAHAYA (≥0.6)", icon=icon("times-circle"), color="red")
   })
   
   output$kpi_waspada <- renderValueBox({
-    n <- sum(cube()$supply_risk_index >= 0.5 & cube()$supply_risk_index < 0.7, na.rm=TRUE)
-    valueBox(format(n, big.mark="."), "Observasi WASPADA (0.5–0.7)", icon=icon("exclamation-circle"), color="orange")
+    n <- sum(cube()$supply_risk_index >= 0.3 & cube()$supply_risk_index < 0.6, na.rm=TRUE)
+    valueBox(format(n, big.mark="."), "Observasi WASPADA (0.3–0.6)", icon=icon("exclamation-circle"), color="orange")
   })
   
   output$kpi_aman <- renderValueBox({
@@ -712,7 +771,7 @@ server <- function(input, output, session) {
       mutate(zona=alert_status(avg_risk)) %>%
       count(zona)
     
-    colors <- c("KRITIS"="#c0392b","WASPADA"="#d35400","HATI-HATI"="#d4ac0d","AMAN"="#1e8449")
+    colors <- c("BAHAYA"="#c0392b","WASPADA"="#d68910","AMAN"="#1e8449")
     validate(need(nrow(df)>0,"Data kosong."))
     plot_ly(df, labels=~zona, values=~n, type="pie",
             marker=list(colors=colors[df$zona]),
@@ -729,20 +788,28 @@ server <- function(input, output, session) {
       mutate(periode=paste0(tahun," Q",kuartal))
     
     validate(need(nrow(df)>0,"Data kosong."))
+    # Hitung range Y otomatis: dari 0 sampai sedikit di atas nilai max data
+    # sehingga perbedaan antar titik terlihat jelas
+    y_ceil <- 0.1  # range Y tetap 0.05 - 0.1
+    
     plot_ly(df, x=~periode, y=~avg_risk, type="scatter", mode="lines+markers",
             line=list(color="#1a3a5c",width=2.5),
             marker=list(color="#1a3a5c",size=7),
             hovertemplate="%{x}: %{y:.3f}<extra></extra>") %>%
       layout(xaxis=list(title="",tickangle=-45,tickfont=list(size=10)),
-             yaxis=list(title="Risk Index",range=c(0,1)),
+             yaxis=list(title="Risk Index", range=c(0.05, y_ceil)),
              margin=list(b=80), showlegend=TRUE,
              shapes=list(
-               list(type="line", x0=0, x1=1, xref="paper", y0=0.5, y1=0.5,
-                    line=list(dash="dot", color="#d35400", width=1.5))
+               list(type="line", x0=0, x1=1, xref="paper", y0=0.3, y1=0.3,
+                    line=list(dash="dot", color="#d68910", width=1.5)),
+               list(type="line", x0=0, x1=1, xref="paper", y0=0.6, y1=0.6,
+                    line=list(dash="dot", color="#c0392b", width=1.5))
              ),
              annotations=list(
-               list(x=1, y=0.5, xref="paper", yref="y", text="Waspada",
-                    showarrow=FALSE, font=list(size=9,color="#d35400"), xanchor="right")
+               list(x=1, y=0.3, xref="paper", yref="y", text="Waspada",
+                    showarrow=FALSE, font=list(size=9,color="#d68910"), xanchor="right"),
+               list(x=1, y=0.6, xref="paper", yref="y", text="Bahaya",
+                    showarrow=FALSE, font=list(size=9,color="#c0392b"), xanchor="right")
              ))
   })
   
@@ -763,8 +830,11 @@ server <- function(input, output, session) {
               rownames=FALSE, class="stripe hover") %>%
       formatStyle("Status",
                   backgroundColor=styleEqual(
-                    c("KRITIS","WASPADA","HATI-HATI","AMAN"),
-                    c("#fdecea","#fef5ec","#fefde6","#eafaf1")),
+                    c("BAHAYA","WASPADA","AMAN"),
+                    c("#fdecea","#fef5ec","#eafaf1")),
+                  color=styleEqual(
+                    c("BAHAYA","WASPADA","AMAN"),
+                    c("#c0392b","#d68910","#1e8449")),
                   fontWeight="bold")
   })
   
@@ -778,18 +848,18 @@ server <- function(input, output, session) {
       summarise(avg_risk=mean(supply_risk_index,na.rm=TRUE),.groups="drop") %>%
       arrange(desc(avg_risk)) %>% head(10) %>%
       mutate(nama_provinsi=factor(nama_provinsi,levels=rev(nama_provinsi)),
-             warna=case_when(avg_risk>=0.7~"#c0392b",avg_risk>=0.5~"#d35400",TRUE~"#d4ac0d"))
+             warna=case_when(avg_risk>=0.6~"#c0392b",avg_risk>=0.3~"#d68910",TRUE~"#1e8449"))
     
     validate(need(nrow(df)>0,"Data kosong."))
     plot_ly(df, x=~avg_risk, y=~nama_provinsi, type="bar", orientation="h",
             marker=list(color=~warna),
             hovertemplate="%{y}: %{x:.4f}<extra></extra>") %>%
-      add_lines(x=c(0.5,0.5), y=c(-0.5,9.5),
-                line=list(dash="dot",color="#d35400",width=1.5),
+      add_lines(x=c(0.3,0.3), y=c(-0.5,9.5),
+                line=list(dash="dot",color="#d68910",width=1.5),
                 name="Waspada",showlegend=TRUE) %>%
-      add_lines(x=c(0.7,0.7), y=c(-0.5,9.5),
+      add_lines(x=c(0.6,0.6), y=c(-0.5,9.5),
                 line=list(dash="dot",color="#c0392b",width=1.5),
-                name="Kritis",showlegend=TRUE) %>%
+                name="Bahaya",showlegend=TRUE) %>%
       layout(xaxis=list(title="Avg Supply Risk Index",range=c(0,1)),
              yaxis=list(title=""),margin=list(l=140))
   })
@@ -833,21 +903,21 @@ server <- function(input, output, session) {
                       categoryorder="array", categoryarray=all_periods),
         yaxis  = list(title="Risk Index", range=c(0,1)),
         shapes = list(
-          # Garis threshold Waspada (0.5) — pakai xref='paper' agar span penuh
+          # Garis threshold Waspada (0.3)
           list(type="line", x0=0, x1=1, xref="paper",
-               y0=0.5, y1=0.5,
-               line=list(dash="dot", color="#d35400", width=1.5)),
-          # Garis threshold Kritis (0.7)
+               y0=0.3, y1=0.3,
+               line=list(dash="dot", color="#d68910", width=1.5)),
+          # Garis threshold Bahaya (0.6)
           list(type="line", x0=0, x1=1, xref="paper",
-               y0=0.7, y1=0.7,
+               y0=0.6, y1=0.6,
                line=list(dash="dot", color="#c0392b", width=1.5))
         ),
         annotations = list(
-          list(x=1, y=0.5, xref="paper", yref="y",
+          list(x=1, y=0.3, xref="paper", yref="y",
                text="Waspada", showarrow=FALSE,
-               font=list(size=9, color="#d35400"), xanchor="right"),
-          list(x=1, y=0.7, xref="paper", yref="y",
-               text="Kritis", showarrow=FALSE,
+               font=list(size=9, color="#d68910"), xanchor="right"),
+          list(x=1, y=0.6, xref="paper", yref="y",
+               text="Bahaya", showarrow=FALSE,
                font=list(size=9, color="#c0392b"), xanchor="right")
         ),
         legend = list(orientation="h", y=-0.30)
@@ -1177,21 +1247,43 @@ server <- function(input, output, session) {
     valueBox(format(v,big.mark="."),"Rata-rata Gap Konsumsi (kg)",icon=icon("utensils"),color="purple")
   })
   
-  output$gap_timeline <- renderPlotly({
-    df <- gap_df()
-    validate(need(nrow(df)>0,"Data kosong."))
-    plot_ly(df, x=~time_key, y=~gap_ekor, color=~nama_komoditas,
-            type="bar", barmode="group",
-            colors=c("#1a3a5c","#c0392b"),
-            hovertemplate="%{x}: %{y:,.0f} ekor<extra></extra>") %>%
-      layout(xaxis=list(title="Periode (YYYYMM)"),
-             yaxis=list(title="Gap (ekor)",tickformat=","),
-             shapes=list(
-               list(type="line", x0=0, x1=1, xref="paper", y0=0, y1=0,
-                    line=list(color="black", width=1, dash="dash"))
-             ))
+  output$gap_supply_demand <- renderPlotly({
+    df <- cube() %>%
+      group_by(tahun, bulan, nama_komoditas) %>%
+      summarise(
+        sum_realisasi_karkas = sum(sum_realisasi_karkas, na.rm=TRUE),
+        avg_konsumsi_bulanan = sum(avg_konsumsi_bulanan, na.rm=TRUE),
+        .groups = "drop"
+      ) %>%
+      mutate(tanggal = paste0(tahun, "-", sprintf("%02d", bulan))) %>%
+      filter(nama_komoditas == "Sapi")
+    
+    validate(need(nrow(df) > 0, "Data kosong."))
+    
+    plot_ly() %>%
+      add_bars(
+        data = df,
+        x = ~tanggal,
+        y = ~sum_realisasi_karkas,
+        name = "Supply: Realisasi Karkas",
+        marker = list(color = "#FF6B6B")
+      ) %>%
+      add_lines(
+        data = df,
+        x = ~tanggal,
+        y = ~avg_konsumsi_bulanan,
+        name = "Demand: Target Konsumsi",
+        line = list(color = "darkred", width = 3, dash = "dash"),
+        mode = "lines+markers"
+      ) %>%
+      layout(
+        title = "SUPPLY VS DEMAND SAPI",
+        xaxis = list(title = "Periode"),
+        yaxis = list(title = "Volume (Kg)"),
+        barmode = "group",
+        hovermode = "x unified"
+      )
   })
-  
   output$gap_deficit_prov <- renderPlotly({
     df <- cube() %>%
       group_by(nama_provinsi,nama_komoditas) %>%
@@ -1355,7 +1447,7 @@ server <- function(input, output, session) {
       mutate(disease_density=sum_jumlah_sakit/(pmax(populasi_ternak,1)/1000))
     
     validate(need(nrow(df)>0,"Data kosong."))
-    colors <- c("KRITIS"="#c0392b","WASPADA"="#d35400","HATI-HATI"="#d4ac0d","AMAN"="#1e8449")
+    colors <- c("BAHAYA"="#c0392b","WASPADA"="#d68910","AMAN"="#1e8449")
     plot_ly(df, x=~populasi_ternak, y=~disease_density,
             size=~supply_risk_index, color=~zona,
             colors=colors, type="scatter", mode="markers",
@@ -1374,8 +1466,21 @@ server <- function(input, output, session) {
   # TAB 7: DEPENDENSI SUPPLY
   # ===========================================================
   
+  output$supply_prov_filter_ui <- renderUI({
+    semua_prov <- sort(unique(cube_raw()$nama_provinsi))
+    selectInput("supply_prov_filter", NULL,
+                choices  = semua_prov,
+                selected = semua_prov,
+                multiple = TRUE,
+                width    = "100%")
+  })
+  
   supply_conc <- reactive({
-    cube() %>%
+    df <- cube()
+    # Filter provinsi jika ada pilihan
+    if (!is.null(input$supply_prov_filter) && length(input$supply_prov_filter) > 0)
+      df <- df %>% filter(nama_provinsi %in% input$supply_prov_filter)
+    df %>%
       group_by(nama_provinsi) %>%
       summarise(sum_vol=sum(sum_vol_mutasi,na.rm=TRUE),
                 pop=mean(populasi_ternak,na.rm=TRUE),
@@ -1419,7 +1524,7 @@ server <- function(input, output, session) {
   
   output$supply_vulner_table <- renderDT({
     df <- supply_conc() %>%
-      filter(pct >= 10 & risk >= 0.5) %>%
+      filter(pct >= 10 & risk >= 0.3) %>%
       select(Provinsi=nama_provinsi,`Vol Supply`=sum_vol,
              `% Nasional`=pct,`Avg Risk`=risk) %>%
       mutate(`Vol Supply`=round(`Vol Supply`,0),
@@ -1428,12 +1533,12 @@ server <- function(input, output, session) {
     
     if (nrow(df)==0) {
       return(datatable(
-        data.frame(Info="Tidak ada provinsi kritis (supply ≥10% & risk ≥0.5) pada filter ini."),
+        data.frame(Info="Tidak ada provinsi rentan (supply ≥10% & risk ≥0.3) pada filter ini."),
         rownames=FALSE, options=list(dom="t")))
     }
     datatable(df, rownames=FALSE, options=list(dom="t")) %>%
       formatStyle("Avg Risk",
-                  backgroundColor=styleInterval(c(0.5,0.7), c("#eafaf1","#fef5ec","#fdecea")))
+                  backgroundColor=styleInterval(c(0.3,0.6), c("#eafaf1","#fef5ec","#fdecea")))
   })
   
   # ===========================================================

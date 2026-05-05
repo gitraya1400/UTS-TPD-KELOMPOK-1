@@ -51,7 +51,7 @@ engine_isikhnas = create_engine(f'mysql+pymysql://{MYSQL_USER}:{MYSQL_PASS}@{MYS
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 # --- PATH FILE ---
-PIHPS_FILE = os.path.join(BASE_DIR, "DATA", "PIPHPS", "final_data.xlsx")
+PIHPS_FILE = os.path.join(BASE_DIR, "DATA", "PIPHPS", "final_data_lengkap.xlsx")
 print("✅ Modul dan Konfigurasi Koneksi Berhasil Dimuat.")
 
 

@@ -507,6 +507,7 @@ pihps_ke_bps = {
     "SUMATERA SELATAN"  : "Sumatera Selatan",
     "SUMSEL"            : "Sumatera Selatan",
     "BANGKA BELITUNG"   : "Bangka Belitung",
+    "KEPULAUAN BANGKA BELITUNG"  : "Bangka Belitung",
     "BABEL"             : "Bangka Belitung",
     "BENGKULU"          : "Bengkulu",
     "LAMPUNG"           : "Lampung",
