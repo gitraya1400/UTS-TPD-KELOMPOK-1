@@ -15,8 +15,8 @@
 # ---- INSTALL CHECK ----
 packages <- c("shiny","shinydashboard","DBI","RPostgres","dplyr","tidyr",
               "ggplot2","plotly","leaflet","sf","scales","DT","shinycssloaders",
-              "fresh","htmltools","lubridate","RColorBrewer","stringdist",
-              "geojsonio")
+              "fresh","htmltools","lubridate","RColorBrewer",
+              "rnaturalearth","rnaturalearthdata")
 
 for (pkg in packages) {
   if (!requireNamespace(pkg, quietly = TRUE)) {
@@ -41,6 +41,8 @@ library(fresh)
 library(htmltools)
 library(lubridate)
 library(RColorBrewer)
+library(rnaturalearth)
+library(rnaturalearthdata)
 
 # ============================================================
 # KONFIGURASI DATABASE
@@ -64,71 +66,88 @@ DB_CONFIG <- list(
 #
 # Jika semua gagal, peta akan menampilkan bubble map dari centroid.
 
-find_shp <- function() {
-  # Cek folder app
-  app_dir <- tryCatch(dirname(rstudioapi::getSourceEditorContext()$path),
-                      error = function(e) getwd())
-  candidates <- c(
-    file.path(app_dir,  "Administrasi_Provinsi.shp"),
-    file.path(app_dir,  "www", "Administrasi_Provinsi.shp"),
-    file.path(getwd(),  "Administrasi_Provinsi.shp"),
-    file.path(getwd(),  "www", "Administrasi_Provinsi.shp")
-  )
-  found <- candidates[file.exists(candidates)]
-  if (length(found) > 0) return(found[1])
-  return(NULL)
-}
+# ============================================================
+# PETA INDONESIA — rnaturalearth (tidak perlu SHP / GeoJSON lokal)
+# ============================================================
+# Menggunakan package rnaturalearth yang memuat batas administrasi
+# Indonesia langsung dari data bawaan R (tidak butuh file eksternal).
 
-SHP_PATH <- find_shp()
-
-# URL GeoJSON fallback (Indonesia provinsi, public domain)
-GEOJSON_URL <- "https://raw.githubusercontent.com/superpikar/indonesia-geojson/master/indonesia-province-simple.json"
-
-# Mapping nama provinsi GeoJSON → nama resmi BPS
-# (kunci = nama di GeoJSON, nilai = nama resmi BPS)
+# Mapping: nama rnaturalearth → nama resmi BPS (uppercase)
 PROV_NAME_MAP <- c(
   "ACEH"                           = "ACEH",
   "NANGGROE ACEH DARUSSALAM"       = "ACEH",
   "SUMATERA UTARA"                 = "SUMATERA UTARA",
-  "SUMATRA UTARA"                  = "SUMATERA UTARA",
+  "NORTH SUMATRA"                  = "SUMATERA UTARA",
   "SUMATERA BARAT"                 = "SUMATERA BARAT",
+  "WEST SUMATRA"                   = "SUMATERA BARAT",
   "RIAU"                           = "RIAU",
   "KEPULAUAN RIAU"                 = "KEPULAUAN RIAU",
+  "RIAU ISLANDS"                   = "KEPULAUAN RIAU",
   "JAMBI"                          = "JAMBI",
   "SUMATERA SELATAN"               = "SUMATERA SELATAN",
-  "SUMATRA SELATAN"                = "SUMATERA SELATAN",
+  "SOUTH SUMATRA"                  = "SUMATERA SELATAN",
   "BANGKA BELITUNG"                = "KEP. BANGKA BELITUNG",
   "KEPULAUAN BANGKA BELITUNG"      = "KEP. BANGKA BELITUNG",
+  "BANGKA-BELITUNG"                = "KEP. BANGKA BELITUNG",
   "BENGKULU"                       = "BENGKULU",
   "LAMPUNG"                        = "LAMPUNG",
   "DKI JAKARTA"                    = "DKI JAKARTA",
   "JAKARTA"                        = "DKI JAKARTA",
   "JAWA BARAT"                     = "JAWA BARAT",
+  "WEST JAVA"                      = "JAWA BARAT",
   "JAWA TENGAH"                    = "JAWA TENGAH",
+  "CENTRAL JAVA"                   = "JAWA TENGAH",
   "DI YOGYAKARTA"                  = "DI YOGYAKARTA",
   "DAERAH ISTIMEWA YOGYAKARTA"     = "DI YOGYAKARTA",
   "YOGYAKARTA"                     = "DI YOGYAKARTA",
   "JAWA TIMUR"                     = "JAWA TIMUR",
+  "EAST JAVA"                      = "JAWA TIMUR",
   "BANTEN"                         = "BANTEN",
   "BALI"                           = "BALI",
   "NUSA TENGGARA BARAT"            = "NUSA TENGGARA BARAT",
+  "WEST NUSA TENGGARA"             = "NUSA TENGGARA BARAT",
   "NUSA TENGGARA TIMUR"            = "NUSA TENGGARA TIMUR",
+  "EAST NUSA TENGGARA"             = "NUSA TENGGARA TIMUR",
   "KALIMANTAN BARAT"               = "KALIMANTAN BARAT",
+  "WEST KALIMANTAN"                = "KALIMANTAN BARAT",
   "KALIMANTAN TENGAH"              = "KALIMANTAN TENGAH",
+  "CENTRAL KALIMANTAN"             = "KALIMANTAN TENGAH",
   "KALIMANTAN SELATAN"             = "KALIMANTAN SELATAN",
+  "SOUTH KALIMANTAN"               = "KALIMANTAN SELATAN",
   "KALIMANTAN TIMUR"               = "KALIMANTAN TIMUR",
+  "EAST KALIMANTAN"                = "KALIMANTAN TIMUR",
   "KALIMANTAN UTARA"               = "KALIMANTAN UTARA",
+  "NORTH KALIMANTAN"               = "KALIMANTAN UTARA",
   "SULAWESI UTARA"                 = "SULAWESI UTARA",
+  "NORTH SULAWESI"                 = "SULAWESI UTARA",
   "SULAWESI TENGAH"                = "SULAWESI TENGAH",
+  "CENTRAL SULAWESI"               = "SULAWESI TENGAH",
   "SULAWESI SELATAN"               = "SULAWESI SELATAN",
+  "SOUTH SULAWESI"                 = "SULAWESI SELATAN",
   "SULAWESI TENGGARA"              = "SULAWESI TENGGARA",
+  "SOUTHEAST SULAWESI"             = "SULAWESI TENGGARA",
   "GORONTALO"                      = "GORONTALO",
   "SULAWESI BARAT"                 = "SULAWESI BARAT",
+  "WEST SULAWESI"                  = "SULAWESI BARAT",
   "MALUKU"                         = "MALUKU",
   "MALUKU UTARA"                   = "MALUKU UTARA",
+  "NORTH MALUKU"                   = "MALUKU UTARA",
   "PAPUA"                          = "PAPUA",
-  "PAPUA BARAT"                    = "PAPUA BARAT"
+  "PAPUA BARAT"                    = "PAPUA BARAT",
+  "WEST PAPUA"                     = "PAPUA BARAT"
 )
+
+# Muat batas provinsi Indonesia dari rnaturalearth (tidak perlu internet)
+INDONESIA_SF <- tryCatch({
+  indo <- ne_states(country = "indonesia", returnclass = "sf")
+  indo$PROVINSI <- toupper(trimws(indo$name))
+  mapped <- PROV_NAME_MAP[indo$PROVINSI]
+  indo$PROVINSI <- ifelse(is.na(mapped), indo$PROVINSI, mapped)
+  indo
+}, error = function(e) {
+  message("[PETA] rnaturalearth gagal: ", e$message)
+  NULL
+})
 
 # Centroid koordinat fallback jika SHP & GeoJSON tidak tersedia
 PROV_CENTROID <- data.frame(
@@ -304,7 +323,6 @@ ui <- dashboardPage(
       menuItem("Beranda & Ringkasan",     tabName = "home",     icon = icon("home")),
       menuItem("Early Warning System",    tabName = "ews",      icon = icon("exclamation-triangle")),
       menuItem("Harga vs Wabah",          tabName = "harga",    icon = icon("chart-line")),
-      menuItem("Time-Lag Correlation",    tabName = "timelag",  icon = icon("clock")),
       menuItem("Supply–Demand Gap",       tabName = "gap",      icon = icon("balance-scale")),
       menuItem("Peta Risiko Spasial",     tabName = "peta",     icon = icon("map-marked-alt")),
       menuItem("Dependensi Supply",       tabName = "supply",   icon = icon("sitemap")),
@@ -403,47 +421,27 @@ ui <- dashboardPage(
       ),
       
       # =========================================================
-      # TAB 3: HARGA vs WABAH
+      # TAB 3: HARGA vs WABAH  (termasuk Time-Lag Correlation)
       # =========================================================
       tabItem(tabName = "harga",
-              fluidRow(column(12, tags$div(class="section-title", "Analisis Harga vs Wabah — Korelasi Pearson"))),
-              fluidRow(
-                valueBoxOutput("corr_sapi", width=6),
-                valueBoxOutput("corr_ayam", width=6)
-              ),
-              fluidRow(
-                column(12, box(width=NULL, title="Dual-Axis: Harga Rata-rata vs Jumlah Sakit (Nasional)",
-                               withSpinner(plotlyOutput("harga_dualaxis", height="380px"), color="#1a3a5c")))
-              ),
-              fluidRow(
-                column(6, box(width=NULL, title="Scatter: Harga vs Jumlah Sakit (per Komoditas)",
-                              withSpinner(plotlyOutput("harga_scatter", height="320px"), color="#1a3a5c"))),
-                column(6, box(width=NULL, title="Distribusi Harga per Kuartal (Box Plot)",
-                              withSpinner(plotlyOutput("harga_boxplot", height="320px"), color="#1a3a5c")))
-              )
-      ),
-      
-      # =========================================================
-      # TAB 4: TIME-LAG CORRELATION — Cross-Spatial (Hulu vs Hilir)
-      # =========================================================
-      tabItem(tabName = "timelag",
-              fluidRow(column(12, tags$div(class="section-title",
-                                           "Time-Lag Correlation — Wabah Provinsi Hulu vs Harga Provinsi Hilir"))),
+              fluidRow(column(12, tags$div(class="section-title", "Harga vs Wabah — Korelasi & Time-Lag Analysis"))),
+              
+              # --- BAGIAN UTAMA: TIME-LAG CORRELATION ---
               fluidRow(
                 column(12,
                        box(width=NULL,
                            tags$div(class="alert-banner alert-waspada",
                                     tags$b("Metode Cross-Spatial:"),
                                     " Wabah diambil dari PROVINSI PRODUSEN (hulu) dan harga diambil dari PROVINSI KONSUMEN (hilir). ",
-                                    "Ini membuktikan secara saintifik apakah gangguan rantai pasok di daerah asal ",
-                                    "benar-benar merambat ke harga di pasar tujuan — dan berapa bulan jedanya (Golden Window)."
+                                    "Ini membuktikan apakah gangguan rantai pasok di daerah asal merambat ke harga di pasar tujuan — ",
+                                    "dan berapa bulan jedanya (Golden Window)."
                            )
                        )
                 )
               ),
               fluidRow(
                 column(4,
-                       box(width=NULL, title="Pengaturan",
+                       box(width=NULL, title="Pengaturan Time-Lag",
                            selectInput("lag_komoditas", "Komoditas",
                                        choices = c("Sapi", "Ayam"), selected = "Sapi"),
                            selectInput("lag_metric_x", "Variabel Wabah (Hulu)",
@@ -452,7 +450,6 @@ ui <- dashboardPage(
                                        selected = "sum_jumlah_sakit"),
                            sliderInput("lag_max", "Lag Maks (bulan)", min=2, max=12, value=6, step=1),
                            tags$hr(),
-                           # Pilih provinsi hulu (multi-select)
                            tags$p(tags$b("Provinsi Hulu (Produsen):"),
                                   style="font-size:12px; margin-bottom:4px;"),
                            uiOutput("lag_ui_hulu"),
@@ -472,6 +469,18 @@ ui <- dashboardPage(
                            title="Overlay Z-Score: Wabah Hulu vs Harga Hilir (digeser lag terbaik)",
                            withSpinner(plotlyOutput("lag_overlay", height="300px"), color="#1a3a5c"))
                 )
+              ),
+              
+              # --- BAGIAN BAWAH: GRAFIK PELENGKAP ---
+              fluidRow(
+                valueBoxOutput("corr_sapi", width=6),
+                valueBoxOutput("corr_ayam", width=6)
+              ),
+              fluidRow(
+                column(6, box(width=NULL, title="Scatter: Harga vs Jumlah Sakit (per Komoditas)",
+                              withSpinner(plotlyOutput("harga_scatter", height="320px"), color="#1a3a5c"))),
+                column(6, box(width=NULL, title="Distribusi Harga per Kuartal (Box Plot)",
+                              withSpinner(plotlyOutput("harga_boxplot", height="320px"), color="#1a3a5c")))
               )
       ),
       
@@ -724,11 +733,17 @@ server <- function(input, output, session) {
             line=list(color="#1a3a5c",width=2.5),
             marker=list(color="#1a3a5c",size=7),
             hovertemplate="%{x}: %{y:.3f}<extra></extra>") %>%
-      add_lines(y=0.5, line=list(dash="dot",color="#d35400",width=1.5),
-                name="Threshold Waspada", showlegend=TRUE) %>%
       layout(xaxis=list(title="",tickangle=-45,tickfont=list(size=10)),
              yaxis=list(title="Risk Index",range=c(0,1)),
-             margin=list(b=80), showlegend=TRUE)
+             margin=list(b=80), showlegend=TRUE,
+             shapes=list(
+               list(type="line", x0=0, x1=1, xref="paper", y0=0.5, y1=0.5,
+                    line=list(dash="dot", color="#d35400", width=1.5))
+             ),
+             annotations=list(
+               list(x=1, y=0.5, xref="paper", yref="y", text="Waspada",
+                    showarrow=FALSE, font=list(size=9,color="#d35400"), xanchor="right")
+             ))
   })
   
   output$home_alert_table <- renderDT({
@@ -789,19 +804,54 @@ server <- function(input, output, session) {
       filter(nama_provinsi %in% top5) %>%
       group_by(tahun,bulan,nama_provinsi) %>%
       summarise(risk=mean(supply_risk_index,na.rm=TRUE),.groups="drop") %>%
-      mutate(time_key=tahun*100+bulan)
+      mutate(periode = paste0(tahun, "/", sprintf("%02d", bulan)))
     
     validate(need(nrow(df)>0,"Data tidak cukup untuk filter ini."))
     
-    plot_ly(df, x=~time_key, y=~risk, color=~nama_provinsi,
-            type="scatter", mode="lines+markers",
-            hovertemplate="%{x}: %{y:.4f}<extra></extra>") %>%
-      add_lines(y=0.5, line=list(dash="dot",color="#d35400",width=1),
-                showlegend=FALSE, inherit=FALSE) %>%
-      add_lines(y=0.7, line=list(dash="dot",color="#c0392b",width=1),
-                showlegend=FALSE, inherit=FALSE) %>%
-      layout(xaxis=list(title="Periode (YYYYMM)"),
-             yaxis=list(title="Risk Index",range=c(0,1)))
+    # Ambil semua periode unik untuk sumbu x
+    all_periods <- sort(unique(df$periode))
+    
+    plot_ly() %>%
+      # Plot satu trace per provinsi
+      { fig <- .
+      for (prov in top5) {
+        d <- df %>% filter(nama_provinsi == prov)
+        fig <- fig %>% add_trace(
+          data     = d,
+          x        = ~periode,
+          y        = ~risk,
+          type     = "scatter",
+          mode     = "lines+markers",
+          name     = prov,
+          hovertemplate = paste0(prov, " %{x}: %{y:.4f}<extra></extra>")
+        )
+      }
+      fig
+      } %>%
+      layout(
+        xaxis  = list(title="Periode", tickangle=-45, tickfont=list(size=8),
+                      categoryorder="array", categoryarray=all_periods),
+        yaxis  = list(title="Risk Index", range=c(0,1)),
+        shapes = list(
+          # Garis threshold Waspada (0.5) — pakai xref='paper' agar span penuh
+          list(type="line", x0=0, x1=1, xref="paper",
+               y0=0.5, y1=0.5,
+               line=list(dash="dot", color="#d35400", width=1.5)),
+          # Garis threshold Kritis (0.7)
+          list(type="line", x0=0, x1=1, xref="paper",
+               y0=0.7, y1=0.7,
+               line=list(dash="dot", color="#c0392b", width=1.5))
+        ),
+        annotations = list(
+          list(x=1, y=0.5, xref="paper", yref="y",
+               text="Waspada", showarrow=FALSE,
+               font=list(size=9, color="#d35400"), xanchor="right"),
+          list(x=1, y=0.7, xref="paper", yref="y",
+               text="Kritis", showarrow=FALSE,
+               font=list(size=9, color="#c0392b"), xanchor="right")
+        ),
+        legend = list(orientation="h", y=-0.30)
+      )
   })
   
   output$ews_heatmap <- renderPlotly({
@@ -861,36 +911,6 @@ server <- function(input, output, session) {
     col <- if (abs(r)>=0.7) "red" else if (abs(r)>=0.5) "orange" else "blue"
     lbl <- if (p<0.05) "signifikan" else "tidak signifikan"
     valueBox(round(r,3), paste0("Korelasi Ayam (",lbl,")"), icon=icon("drumstick-bite"), color=col)
-  })
-  
-  output$harga_dualaxis <- renderPlotly({
-    df <- cube() %>%
-      group_by(tahun,bulan,nama_komoditas) %>%
-      summarise(avg_harga=mean(avg_harga,na.rm=TRUE),
-                sum_sakit=sum(sum_jumlah_sakit,na.rm=TRUE),.groups="drop") %>%
-      mutate(time_key=tahun*100+bulan)
-    
-    validate(need(nrow(df)>0,"Data kosong."))
-    fig <- plot_ly()
-    pal <- c("Sapi"="#1a3a5c","Ayam"="#c0392b")
-    for (k in unique(df$nama_komoditas)) {
-      d <- df %>% filter(nama_komoditas==k)
-      fig <- fig %>%
-        add_trace(data=d,x=~time_key,y=~avg_harga,type="scatter",mode="lines+markers",
-                  name=paste("Harga",k),yaxis="y1",
-                  line=list(color=pal[k],width=2.5),
-                  hovertemplate=paste0(k," harga: Rp %{y:,.0f}<extra></extra>")) %>%
-        add_trace(data=d,x=~time_key,y=~sum_sakit,type="bar",
-                  name=paste("Sakit",k),yaxis="y2",
-                  marker=list(color=pal[k],opacity=0.3),
-                  hovertemplate=paste0(k," sakit: %{y}<extra></extra>"))
-    }
-    fig %>% layout(
-      xaxis=list(title="Periode (YYYYMM)"),
-      yaxis=list(title="Harga Rata-rata (Rp)",tickformat=","),
-      yaxis2=list(title="Jumlah Sakit",overlaying="y",side="right"),
-      barmode="overlay",hovermode="x unified"
-    )
   })
   
   output$harga_scatter <- renderPlotly({
@@ -1037,14 +1057,15 @@ server <- function(input, output, session) {
             ),
             customdata = ~label_txt
     ) %>%
-      add_lines(y = 0,
-                line = list(color="black", width=0.8, dash="dash"),
-                showlegend=FALSE, inherit=FALSE) %>%
       layout(
         xaxis = list(title="Lag (Wabah Hulu → Harga Hilir)", categoryorder="array",
                      categoryarray=paste0("Lag ", 0:max(df$lag))),
         yaxis = list(title="Korelasi Pearson (r)", range=c(-1, 1)),
         bargap = 0.3,
+        shapes = list(
+          list(type="line", x0=0, x1=1, xref="paper", y0=0, y1=0,
+               line=list(color="black", width=0.8, dash="dash"))
+        ),
         annotations = list(list(
           x=df$label_lag[peak_idx], y=df$r[peak_idx] + sign(df$r[peak_idx])*0.08,
           text=paste0("Golden Window\n(Lag ",df$lag[peak_idx]," bln)"),
@@ -1163,10 +1184,12 @@ server <- function(input, output, session) {
             type="bar", barmode="group",
             colors=c("#1a3a5c","#c0392b"),
             hovertemplate="%{x}: %{y:,.0f} ekor<extra></extra>") %>%
-      add_lines(y=0, line=list(color="black",width=1,dash="dash"),
-                showlegend=FALSE, inherit=FALSE) %>%
       layout(xaxis=list(title="Periode (YYYYMM)"),
-             yaxis=list(title="Gap (ekor)",tickformat=","))
+             yaxis=list(title="Gap (ekor)",tickformat=","),
+             shapes=list(
+               list(type="line", x0=0, x1=1, xref="paper", y0=0, y1=0,
+                    line=list(color="black", width=1, dash="dash"))
+             ))
   })
   
   output$gap_deficit_prov <- renderPlotly({
@@ -1207,57 +1230,27 @@ server <- function(input, output, session) {
   # TAB 6: PETA RISIKO SPASIAL
   # ===========================================================
   
-  # Reactive: mode peta (shapefile / geojson / bubble)
+  # Reactive: gunakan INDONESIA_SF dari rnaturalearth; fallback ke bubble centroid
   shp_obj <- reactive({
-    # Coba 1: SHP lokal
-    if (!is.null(SHP_PATH)) {
-      shp <- tryCatch({
-        s <- sf::st_read(SHP_PATH, quiet=TRUE)
-        # Cari kolom nama provinsi
-        nms_lower <- tolower(names(s))
-        cand <- names(s)[which(nms_lower %in%
-                                 c("provinsi","nama_prov","namobj","province","name",
-                                   "nama","propinsi","prov_name","adm1_name"))]
-        if (length(cand)==0) cand <- names(s)[!names(s) %in% c("geometry","SHAPE")]
-        prov_col <- cand[1]
-        s <- s %>% rename(PROVINSI = all_of(prov_col))
-        list(type="shp", data=s)
-      }, error=function(e) NULL)
-      if (!is.null(shp)) return(shp)
+    if (!is.null(INDONESIA_SF) && nrow(INDONESIA_SF) > 0) {
+      return(list(type = "rnaturalearth", data = INDONESIA_SF))
     }
-    
-    # Coba 2: GeoJSON online
-    geojson <- tryCatch({
-      g <- sf::st_read(GEOJSON_URL, quiet=TRUE)
-      nms_lower <- tolower(names(g))
-      cand <- names(g)[which(nms_lower %in%
-                               c("state","name","provinsi","province","prov","propinsi"))]
-      if (length(cand)==0) cand <- names(g)[1]
-      g <- g %>% rename(PROVINSI = all_of(cand[1]))
-      list(type="geojson", data=g)
-    }, error=function(e) NULL)
-    if (!is.null(geojson)) return(geojson)
-    
-    # Fallback: bubble dari centroid
-    list(type="bubble", data=NULL)
+    list(type = "bubble", data = NULL)
   })
   
   output$peta_status_banner <- renderUI({
     mode <- shp_obj()$type
-    if (mode=="shp") {
+    if (mode == "rnaturalearth") {
       tags$div(class="peta-info",
-               icon("check-circle"), " Peta choropleth menggunakan shapefile lokal."
-      )
-    } else if (mode=="geojson") {
-      tags$div(class="peta-info",
-               icon("cloud-download-alt"), " File shapefile lokal tidak ditemukan. ",
-               "Menggunakan GeoJSON online (butuh koneksi internet)."
+               icon("check-circle"),
+               " Peta choropleth menggunakan data batas provinsi dari package ",
+               tags$b("rnaturalearth"), " (tidak memerlukan file SHP atau koneksi internet)."
       )
     } else {
       tags$div(class="alert-banner alert-waspada",
-               icon("map-marker-alt"), " Shapefile & GeoJSON tidak tersedia. ",
-               "Menampilkan bubble map dari koordinat centroid provinsi. ",
-               tags$b("Letakkan file 'Administrasi_Provinsi.shp' di folder yang sama dengan app.R untuk choropleth.")
+               icon("map-marker-alt"),
+               " rnaturalearth tidak tersedia. Menampilkan bubble map dari koordinat centroid provinsi. ",
+               tags$b("Install package rnaturalearth & rnaturalearthdata untuk choropleth.")
       )
     }
   })
@@ -1289,7 +1282,7 @@ server <- function(input, output, session) {
     
     validate(need(nrow(data)>0,"Data kosong untuk tahun ini."))
     
-    if (obj$type %in% c("shp","geojson")) {
+    if (obj$type %in% c("shp","geojson","rnaturalearth")) {
       # --- Choropleth ---
       shp    <- obj$data
       merged <- join_peta(shp, data)
