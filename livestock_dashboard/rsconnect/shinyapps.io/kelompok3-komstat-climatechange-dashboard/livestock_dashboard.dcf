@@ -5,7 +5,7 @@ account: kelompok3-komstat-climatechange-dashboard
 server: shinyapps.io
 hostUrl: https://api.shinyapps.io/v1
 appId: 17297791
-bundleId: 11951109
+bundleId: 11951263
 url: https://kelompok3-komstat-climatechange-dashboard.shinyapps.io/livestock_dashboard/
 version: 1
 asMultiple: FALSE

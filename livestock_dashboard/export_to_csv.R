@@ -52,3 +52,6 @@ cat("Selesai! Data tersimpan di: data/olap_cube.csv\n")
 cat("Jumlah baris:", nrow(df), "\n")
 cat("Kolom:", paste(names(df), collapse=", "), "\n")
 cat("\nSelanjutnya: deploy ulang app ke shinyapps.io\n")
+
+
+
